@@ -41,51 +41,87 @@ Upload a classroom audio file (Kannada / Hindi / English mixed) and the AI autom
 
 ```
 audio_notes_project/
-├── .env                    ← Configuration (USE_MOCK_ML, SECRET_KEY, etc.)
-├── requirements.txt        ← Python dependencies
+├── .env                         ← Configuration (USE_MOCK_ML, SECRET_KEY, SMTP, etc.)
+├── .env.example                 ← Template for environment variables
+├── .gitignore
+├── requirements.txt             ← Python dependencies
+├── Procfile                     ← Deployment config (Heroku/Render)
+├── runtime.txt                  ← Python version pin
 ├── backend/
-│   ├── main.py             ← FastAPI app (all routes + background pipeline)
-│   ├── database.py         ← SQLAlchemy ORM models
-│   ├── auth.py             ← JWT authentication
+│   ├── main.py                  ← FastAPI app (all routes + background pipeline)
+│   ├── database.py              ← SQLAlchemy ORM models
+│   ├── auth.py                  ← Custom Email+Password auth with OTP verification
 │   └── ml/
 │       ├── audio_processor.py   ← Audio chunking + noise removal
-│       ├── transcriber.py       ← Whisper ASR + translation
+│       ├── transcriber.py       ← Whisper ASR + language detection + translation
 │       ├── note_structurer.py   ← T5 note generation
-│       └── mock_pipeline.py     ← Mock ML (for testing without models)
+│       ├── cleaner.py           ← Text post-processing and cleanup
+│       ├── exporter.py          ← Export notes to .txt / .pdf
+│       └── pipeline.py          ← End-to-end ML orchestration pipeline
 ├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Login.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Upload.jsx
-│   │   │   └── NotesViewer.jsx
-│   │   ├── App.jsx
-│   │   ├── api.js
-│   │   └── index.css
 │   ├── index.html
-│   └── package.json
-├── models/
-│   ├── whisper-kn-hi/     ← Trained Whisper model (download from Colab)
-│   └── t5-notes/          ← Trained T5 model (download from Colab)
+│   ├── vite.config.js
+│   ├── vercel.json              ← Frontend deployment config
+│   ├── package.json
+│   └── src/
+│       ├── App.jsx              ← Route definitions
+│       ├── api.js               ← Axios API client
+│       ├── index.css            ← Global styles
+│       ├── main.jsx             ← React entry point
+│       ├── components/
+│       │   └── Navbar.jsx
+│       └── pages/
+│           ├── Landing.jsx       ← Home/marketing page
+│           ├── Register.jsx      ← Sign up with email + password
+│           ├── Login.jsx         ← Login + OTP email verification
+│           ├── ForgotPassword.jsx← Password reset flow
+│           ├── SSOCallback.jsx   ← OAuth callback handler
+│           ├── Dashboard.jsx     ← All past uploads + notes
+│           ├── Upload.jsx        ← Audio upload + live pipeline progress
+│           ├── NotesViewer.jsx   ← View/download structured notes
+│           └── Profile.jsx       ← User profile settings
 ├── notebooks/
-│   ├── 01_Train_Whisper.ipynb
-│   ├── 02_Train_T5_Notes.ipynb
-│   └── 03_Evaluate_Models.ipynb
-├── data/
-│   ├── raw/               ← Source audio datasets
-│   └── processed/         ← Preprocessed data
-└── uploads/               ← User-uploaded audio files (created at runtime)
+│   ├── 01_Train_Whisper.ipynb   ← Fine-tune Whisper on Kathbath dataset
+│   ├── 01_Train_Whisper.py      ← Script version of Whisper training
+│   ├── 02_Train_T5_Notes.ipynb  ← Train T5 for note structuring
+│   └── 03_Evaluate_Models.ipynb ← WER, BLEU, ROUGE evaluation
+├── models/                      ← Trained models (not tracked in git)
+│   ├── whisper-kn-hi/
+│   └── t5-notes/
+└── uploads/                     ← User audio files (created at runtime, not tracked)
 ```
+
+---
+
+## 🔐 Authentication System
+
+This project uses a **custom email + password authentication system** with mandatory **OTP verification**:
+
+| Step | Description |
+|------|-------------|
+| Register | User signs up with name, email, and password |
+| OTP Email | A 6-digit OTP is sent to the registered email |
+| Verify OTP | User enters OTP to activate account |
+| Login | User logs in with email + password |
+| OTP on Login | A fresh OTP is emailed on every login for 2FA |
+| JWT Token | On successful OTP verification, a JWT token is issued |
+
+> No third-party auth providers (Clerk, Auth0, etc.) — fully self-hosted and secure.
 
 ---
 
 ## ⚡ Quick Start (Mock Mode — No GPU Required)
 
-### Step 1 — Create Python Virtual Environment
+### Step 1 — Clone the Repository
 
 ```bash
-cd audio_notes_project
+git clone https://github.com/Udayakumar2359/audio-notes-project.git
+cd audio-notes-project
+```
+
+### Step 2 — Create Python Virtual Environment
+
+```bash
 python -m venv venv
 
 # Windows:
@@ -94,28 +130,32 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### Step 2 — Install Python Dependencies
+### Step 3 — Install Python Dependencies
 
 ```bash
-pip install fastapi uvicorn[standard] python-multipart
-pip install sqlalchemy passlib[bcrypt] python-jose[cryptography]
-pip install python-dotenv aiofiles
-pip install langdetect
+pip install -r requirements.txt
 ```
 
-> **For full ML support** (after Colab training):
-> ```bash
-> pip install -r requirements.txt
-> ```
+### Step 4 — Configure Environment Variables
 
-### Step 3 — Verify Mock Mode is ON
+Copy `.env.example` to `.env` and fill in your values:
 
-Open `.env` and confirm:
-```
+```env
 USE_MOCK_ML=true
+SECRET_KEY=your-super-secret-key-here
+DATABASE_URL=sqlite:///./audio_notes.db
+
+# Email (SMTP) — required for OTP auth
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+FROM_EMAIL=your-email@gmail.com
 ```
 
-### Step 4 — Start the Backend
+> **Gmail tip:** Use an [App Password](https://support.google.com/accounts/answer/185833) instead of your main password.
+
+### Step 5 — Start the Backend
 
 ```bash
 cd backend
@@ -124,7 +164,7 @@ uvicorn main:app --reload --port 8000
 
 ✅ Visit **http://localhost:8000/docs** — you should see the API documentation.
 
-### Step 5 — Start the Frontend (new terminal)
+### Step 6 — Start the Frontend (new terminal)
 
 ```bash
 cd frontend
@@ -132,19 +172,20 @@ npm install   # first time only
 npm run dev
 ```
 
-✅ Visit **http://localhost:5173** — you should see the AudioNotes AI login page.
+✅ Visit **http://localhost:5173** — you should see the AudioNotes AI landing page.
 
 ---
 
-## 🔐 Test the Application
+## 🧪 Test the Application
 
-1. Open http://localhost:5173/register
-2. Create a student account
-3. Login with your credentials
-4. Click **"Upload Audio"** — upload any `.mp3`, `.wav`, `.m4a` file
-5. Watch the live pipeline progress (5 stages)
-6. View your structured notes when done
-7. Download the notes as `.txt`
+1. Open **http://localhost:5173/register**
+2. Create an account with your email
+3. Check your email for the **OTP code** and verify
+4. **Login** → enter OTP again for 2FA
+5. Click **"Upload Audio"** — upload any `.mp3`, `.wav`, `.m4a` file
+6. Watch the live pipeline progress (5 stages)
+7. View your structured notes when done
+8. Download the notes as `.txt`
 
 ---
 
@@ -213,8 +254,12 @@ Open `notebooks/03_Evaluate_Models.ipynb` on Colab after training.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/auth/register` | Create student account |
-| POST | `/auth/login` | Login → JWT token |
+| POST | `/auth/register` | Register with email + password |
+| POST | `/auth/verify-otp` | Verify registration OTP |
+| POST | `/auth/login` | Login → triggers OTP email |
+| POST | `/auth/verify-login-otp` | Verify login OTP → returns JWT |
+| POST | `/auth/forgot-password` | Request password reset |
+| POST | `/auth/reset-password` | Reset password with token |
 | GET | `/auth/me` | Current user info |
 | POST | `/audio/upload` | Upload audio file |
 | GET | `/audio/{id}/status` | Poll processing status |
@@ -237,7 +282,11 @@ Interactive docs: **http://localhost:8000/docs**
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `1440` | 24-hour token expiry |
 | `UPLOAD_DIR` | `uploads` | Where audio files are saved |
 | `MODEL_DIR` | `models` | Where ML models are stored |
-| `DATABASE_URL` | `sqlite:///./audio_notes.db` | Database path |
+| `DATABASE_URL` | `sqlite:///./audio_notes.db` | SQLite database path |
+| `SMTP_HOST` | `smtp.gmail.com` | SMTP server for OTP emails |
+| `SMTP_PORT` | `587` | SMTP port |
+| `SMTP_USER` | — | Your Gmail address |
+| `SMTP_PASSWORD` | — | Gmail App Password |
 | `TRANSLATION_MODEL` | `Helsinki-NLP/opus-mt-mul-en` | HuggingFace translation model |
 
 ---
@@ -246,15 +295,16 @@ Interactive docs: **http://localhost:8000/docs**
 
 - [ ] Backend starts: `uvicorn main:app --reload --port 8000`
 - [ ] API docs visible: http://localhost:8000/docs
-- [ ] Register user via `/auth/register`
-- [ ] Login returns JWT token via `/auth/login`
+- [ ] Register user → receive OTP email
+- [ ] OTP verification activates account
+- [ ] Login → OTP email sent → verify OTP → redirected to Dashboard
 - [ ] React frontend loads: http://localhost:5173
-- [ ] Login redirects to Dashboard
 - [ ] Upload a `.wav` file from Upload page
 - [ ] Progress stages update every 3 seconds
 - [ ] Notes appear when processing is done
 - [ ] Download `.txt` works
 - [ ] Dashboard shows all past uploads
+- [ ] Profile page loads user info
 - [ ] WER measured and recorded
 - [ ] BLEU score measured and recorded
 - [ ] ROUGE score measured and recorded
@@ -265,8 +315,13 @@ Interactive docs: **http://localhost:8000/docs**
 
 **Backend won't start:**
 - Check virtual environment is activated: `(venv)` in terminal
-- Run `pip install fastapi uvicorn python-multipart sqlalchemy passlib python-jose python-dotenv`
-- Confirm `.env` file exists in `audio_notes_project/` root
+- Run `pip install -r requirements.txt`
+- Confirm `.env` file exists in the root folder
+
+**OTP emails not arriving:**
+- Check `SMTP_USER` and `SMTP_PASSWORD` in `.env`
+- Use Gmail App Password (not your main Gmail password)
+- Check spam/junk folder
 
 **Frontend won't load:**
 - Run `npm install` inside `frontend/` folder first
@@ -278,7 +333,7 @@ Interactive docs: **http://localhost:8000/docs**
 - Add ffmpeg `bin/` folder to system PATH on Windows
 
 **Model not found error:**
-- Check `USE_MOCK_ML=true` in `.env` for testing
+- Check `USE_MOCK_ML=true` in `.env` for testing without models
 - Or download trained models from Colab to `models/` folder
 
 ---
