@@ -1,0 +1,55 @@
+# ============================================================
+#  requirements.txt — Audio Notes AI (Production)
+# ============================================================
+
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+python-multipart==0.0.9
+aiofiles==23.2.1
+httpx==0.27.0
+
+# Database & ORM
+sqlalchemy==2.0.30
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Authentication & Security
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+clerk-backend-api==1.4.2
+
+# ML — PyTorch (CPU; switch to GPU index on Render if GPU plan)
+torch==2.3.0
+torchaudio==2.3.0
+
+# ML — Transformers & Datasets
+transformers==4.41.2
+datasets==2.19.2
+accelerate==0.30.0
+sentencepiece==0.2.0
+sacremoses==0.1.1
+huggingface-hub==0.23.3
+
+# Audio Processing
+pydub==0.25.1
+librosa==0.10.2
+noisereduce==3.0.2
+soundfile==0.12.1
+
+# Text Export
+python-docx==1.1.2
+reportlab==4.2.2
+
+# Evaluation Metrics
+jiwer==3.0.4
+sacrebleu==2.4.2
+rouge-score==0.1.2
+evaluate==0.4.2
+
+# Language Detection
+langdetect==1.0.9
+
+# Utilities
+python-dotenv==1.0.1
+numpy==1.26.4
