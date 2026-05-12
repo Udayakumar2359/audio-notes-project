@@ -1,0 +1,54 @@
+# AudioNotes AI - Gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Environment files (keep .env.example, ignore real .env)
+.env
+.env.local
+.env.production
+!.env.example
+
+# Database
+*.db
+*.sqlite3
+
+# Upload / temp folders
+uploads/
+models/
+local_cache/
+
+# Node.js
+node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Notebooks
+.ipynb_checkpoints/
+
+# ML
+*.pt
+*.pth
+*.bin
+*.onnx
+wandb/

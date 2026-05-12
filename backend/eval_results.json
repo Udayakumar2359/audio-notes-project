@@ -1,0 +1,16 @@
+{
+  "asr": null,
+  "translation": null,
+  "notes": {
+    "rouge1": 28.86,
+    "rouge2": 15.16,
+    "rougeL": 26.7,
+    "coverage": 92.09,
+    "latency_s": 0.854,
+    "samples": 2,
+    "errors": []
+  },
+  "pipeline_latency_s": null,
+  "timestamp": "2026-04-21 22:15:46",
+  "summary": "T5 Notes \u2192 ROUGE-1=28.86%  ROUGE-2=15.16%  ROUGE-L=26.7%  cov=92.09%  (2 samples)"
+}
