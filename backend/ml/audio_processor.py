@@ -141,13 +141,24 @@ def chunk_audio(wav_path: str, output_dir: str, chunk_duration_ms: int = 25_000)
     )
 
     if silence_chunks:
-        # Merge tiny segments so each chunk is ≥ 5 seconds
+        # Merge tiny segments safely to ensure no chunk exceeds ~30s
         merged, current = [], AudioSegment.empty()
         for seg in silence_chunks:
-            current += seg
-            if len(current) >= chunk_duration_ms:
+            # If adding this segment makes it too long, flush current first
+            if len(current) + len(seg) > chunk_duration_ms and len(current) > 5_000:
                 merged.append(current)
                 current = AudioSegment.empty()
+            
+            # If the segment itself is massive (e.g. > 25s), split it rigidly
+            while len(seg) > chunk_duration_ms:
+                if len(current) > 0:
+                    merged.append(current)
+                    current = AudioSegment.empty()
+                merged.append(seg[:chunk_duration_ms])
+                seg = seg[chunk_duration_ms:]
+            
+            current += seg
+
         if len(current) > 1_000:    # keep leftovers > 1 second
             merged.append(current)
 
@@ -157,7 +168,7 @@ def chunk_audio(wav_path: str, output_dir: str, chunk_duration_ms: int = 25_000)
             chunks.append({
                 "index": i,
                 "path":  path,
-                "start": 0.0,
+                "start": 0.0,  # Note: true start times are lost when splitting by silence
                 "end":   len(chunk) / 1_000.0,
             })
     else:

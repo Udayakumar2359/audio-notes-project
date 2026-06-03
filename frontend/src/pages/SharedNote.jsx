@@ -73,7 +73,7 @@ export default function SharedNote() {
         <h2 style={{ marginBottom: '0.625rem', color: '#111827' }}>Link Unavailable</h2>
         <p style={{ color: '#6B7280', marginBottom: '1.5rem' }}>{error}</p>
         <a href="/" style={{ padding: '0.6rem 1.5rem', background: '#2563EB', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
-          Go to AudioNotes AI →
+          Go to AudioNotes AI
         </a>
       </div>
     </div>
@@ -92,7 +92,7 @@ export default function SharedNote() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem', color: '#6B7280' }}>
           <span>👁 {data.view_count} view{data.view_count !== 1 ? 's' : ''}</span>
           <a href="/register" style={{ padding: '0.4rem 1rem', background: '#2563EB', color: '#fff', borderRadius: 8, fontWeight: 600, textDecoration: 'none', fontSize: '0.875rem' }}>
-            Sign up free →
+            Sign up free
           </a>
         </div>
       </div>
@@ -106,41 +106,100 @@ export default function SharedNote() {
 
         {/* Notes card */}
         <div style={{ background: '#fff', borderRadius: 16, padding: '2.5rem 3rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E5E7EB' }}>
-          {/* Header */}
-          <div style={{ marginBottom: '2rem', paddingBottom: '1.25rem', borderBottom: '2px solid #1F2937' }}>
+          {/* ── Header ──────────────────────────────────────── */}
+          <div style={{ marginBottom: '2rem', paddingBottom: '1.25rem', borderBottom: '2px solid #EFF6FF' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.6rem' }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#9CA3AF' }}>Shared Lecture Notes</span>
-              <span style={{ fontSize: '0.8rem', color: '#9CA3AF' }}>{new Date(data.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#2563EB' }}>Shared Lecture Notes</span>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: '#EFF6FF', color: '#3B82F6', border: '1px solid #BFDBFE' }}>LED summariser</span>
+                <span style={{ fontSize: '0.8rem', color: '#9CA3AF' }}>{new Date(data.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</span>
+              </div>
             </div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1.25, marginBottom: '0.4rem', color: '#111827' }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: 800, lineHeight: 1.25, marginBottom: '0.4rem', color: '#111827' }}>
               {notes.title || data.filename?.replace(/\.[^.]+$/, '') || 'Lecture Notes'}
             </h1>
-            <div style={{ fontSize: '0.8125rem', color: '#6B7280', display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
-              <span>📁 {data.filename}</span>
-              {data.word_count > 0 && <span>📝 {data.word_count?.toLocaleString()} words</span>}
+            <div style={{ fontSize: '0.8125rem', color: '#6B7280', display: 'flex', gap: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>📁 {data.filename}</span>
+              {data.word_count > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>📝 {data.word_count?.toLocaleString()} words</span>}
+              {notes.sections?.length > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>📑 {notes.sections.length} sections</span>}
             </div>
           </div>
 
-          {/* Summary */}
+          {/* ── OVERVIEW — full LED summary paragraph ──────── */}
           {notes.summary && (
-            <section style={{ marginBottom: '1.75rem' }}>
-              <span style={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9CA3AF' }}>Overview</span>
-              <p style={{ fontSize: '1rem', lineHeight: 1.85, color: '#374151', marginTop: '0.5rem' }}>{notes.summary}</p>
-            </section>
+            <div style={{ margin: '1.75rem 0 0', padding: '1.5rem 1.75rem', background: 'linear-gradient(135deg,#EFF6FF 0%,#F0F9FF 100%)', borderRadius: 12, border: '1px solid #BFDBFE', borderLeft: '4px solid #2563EB' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em', color: '#2563EB', textTransform: 'uppercase', marginBottom: '0.75rem' }}>📋 Overview</div>
+              <p style={{ fontSize: '1rem', lineHeight: 1.9, color: '#1E3A8A', margin: 0, fontWeight: 450 }}>{notes.summary}</p>
+            </div>
           )}
 
-          {/* Sections */}
-          {notes.sections?.map((sec, idx) => (
-            <section key={idx} style={{ marginBottom: '1.75rem', borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ width: 22, height: 22, borderRadius: 6, background: '#EFF6FF', border: '1px solid #BFDBFE', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 800, color: '#2563EB', flexShrink: 0 }}>
-                  {idx + 1}
-                </span>
-                {sec.heading}
-              </h3>
-              <NotesParagraph text={sec.content} />
-            </section>
-          ))}
+          {/* ── SECTIONS — one card per sentence-group ──────── */}
+          {notes.sections?.length > 0 && (
+            <div style={{ marginTop: '2rem' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em', color: '#6B7280', textTransform: 'uppercase', marginBottom: '1.25rem' }}>📝 Detailed Notes</div>
+              {notes.sections.map((sec, idx) => (
+                <div key={idx} style={{ borderTop: idx === 0 ? 'none' : '1px solid #F3F4F6', paddingTop: idx === 0 ? 0 : '1.75rem', marginTop: idx === 0 ? 0 : '1.75rem' }}>
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '1.05rem', fontWeight: 800, color: '#111827', marginBottom: '0.875rem' }}>
+                    <span style={{ width: 26, height: 26, borderRadius: 7, background: '#EFF6FF', border: '1.5px solid #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 900, color: '#2563EB', flexShrink: 0 }}>{idx + 1}</span>
+                    {sec.heading}
+                  </h3>
+                  {/* Definition paragraph */}
+                  <p style={{ fontSize: '0.9375rem', lineHeight: 1.88, color: '#374151', margin: '0 0 1rem 0' }}>
+                    {sec.definition || sec.content}
+                  </p>
+                  {/* Bullet key points */}
+                  {sec.key_points?.length > 0 && (
+                    <div style={{ background: '#FAFAFA', borderRadius: 8, border: '1px solid #F0F0F0', padding: '0.875rem 1.125rem' }}>
+                      <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', color: '#9CA3AF', textTransform: 'uppercase', marginBottom: '0.6rem' }}>Key Points</div>
+                      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                        {sec.key_points.map((pt, pi) => (
+                          <li key={pi} style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2563EB', flexShrink: 0, marginTop: '0.55rem' }} />
+                            <span style={{ fontSize: '0.875rem', lineHeight: 1.75, color: '#374151' }}>{pt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── KEY CONCEPTS overview list ───────────────────── */}
+          {notes.key_points?.length > 0 && (
+            <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: '1.75rem', marginTop: '1.75rem' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em', color: '#2563EB', textTransform: 'uppercase', marginBottom: '0.875rem' }}>💡 Key Concepts</div>
+              <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {notes.key_points.map((pt, i) => (
+                  <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#2563EB', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0, marginTop: 2 }}>{i + 1}</span>
+                    <span style={{ fontSize: '0.9rem', lineHeight: 1.75, color: '#374151' }}>{pt}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {/* ── Polished Transcript (collapsible) ─────────────────── */}
+          {notes.polished_transcript && (
+            <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+              <details open>
+                <summary style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', color: '#10B981', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '0.75rem' }}>✨ Polished Transcript</summary>
+                <p style={{ fontSize: '0.875rem', lineHeight: 1.85, color: '#374151', whiteSpace: 'pre-wrap', margin: 0 }}>{notes.polished_transcript}</p>
+              </details>
+            </div>
+          )}
+
+          {/* ── Full Transcript (collapsible) ─────────────────── */}
+          {notes.full_transcript && (
+            <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+              <details>
+                <summary style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', color: '#9CA3AF', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '0.75rem' }}>Raw Transcript</summary>
+                <p style={{ fontSize: '0.875rem', lineHeight: 1.85, color: '#6B7280', whiteSpace: 'pre-wrap', margin: 0 }}>{notes.full_transcript}</p>
+              </details>
+            </div>
+          )}
 
           {/* Fallback: plain text */}
           {!notes.sections?.length && data.notes_text && (
@@ -158,7 +217,7 @@ export default function SharedNote() {
             Upload any audio from your class. AudioNotes AI transcribes, translates, and structures your notes automatically.
           </p>
           <a href="/register" style={{ display: 'inline-block', padding: '0.7rem 1.75rem', background: '#fff', color: '#1E40AF', borderRadius: 8, fontWeight: 700, textDecoration: 'none', fontSize: '0.9375rem' }}>
-            Get Started — It's Free →
+            Get Started — It's Free
           </a>
         </div>
       </main>

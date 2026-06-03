@@ -2,10 +2,9 @@
 # ─────────────────────────────────────────────────────────────
 # AI Study Agent — Transcript Q&A with streaming responses
 #
-# Primary  : Ollama (local, http://localhost:11434, llama3.2)
-# Fallback : Groq cloud API (llama-3.3-70b-versatile, free tier)
+# Primary: Ollama (local, http://localhost:11434, llama3.2)
 #
-# Voice input  : handled entirely by browser Web Speech API
+# Voice input : handled entirely by browser Web Speech API
 # Voice output : handled entirely by browser SpeechSynthesis
 # ─────────────────────────────────────────────────────────────
 
@@ -23,8 +22,6 @@ from ml.credibility import (
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_MODEL    = os.getenv("OLLAMA_MODEL",    "llama3.2")
-GROQ_API_KEY    = os.getenv("GROQ_API_KEY",    "")
-GROQ_MODEL      = os.getenv("GROQ_MODEL",      "llama-3.3-70b-versatile")
 
 _SYSTEM_TEMPLATE = """\
 You are an intelligent and friendly AI Study Agent embedded inside an audio lecture note-taking app.
@@ -80,33 +77,18 @@ class TranscriptAgent:
         full_reply = ""
         try:
             if self.model_preference == "cloud":
-                raise Exception("user selected cloud")
+                raise Exception("user selected cloud but only Ollama is available")
             for token in self._ollama_stream(messages):
                 full_reply += token
                 yield token
         except Exception as ollama_err:
-            if self.model_preference == "local":
-                msg = (
-                    "⚠️ Local AI is not reachable. "
-                    "Please ensure Ollama is running (run: ollama serve) "
-                    "or switch to Cloud AI in the settings."
-                )
-                self.history.append({"role": "assistant", "content": msg})
-                yield msg
-                return
-            full_reply = ""
-            try:
-                for token in self._groq_stream(messages):
-                    full_reply += token
-                    yield token
-            except Exception as groq_err:
-                msg = (
-                    f"⚠️ Both Ollama and Groq are unavailable ({groq_err}). "
-                    "Please check your configuration."
-                )
-                self.history.append({"role": "assistant", "content": msg})
-                yield msg
-                return
+            msg = (
+                f"⚠️ AI Agent unavailable: Ollama is not running. "
+                f"Please start Ollama with 'ollama serve'. Error: {ollama_err}"
+            )
+            self.history.append({"role": "assistant", "content": msg})
+            yield msg
+            return
 
         self.history.append({"role": "assistant", "content": full_reply})
 
@@ -132,21 +114,11 @@ class TranscriptAgent:
         ]
         reply = ""
         try:
-            if self.model_preference != "cloud":
-                for token in self._ollama_stream(messages, max_tokens=8192):
-                    reply += token
-                return reply
-        except Exception:
-            pass   # fall through to Groq; reset reply first
-        if not GROQ_API_KEY:
-            return "AI agent not available. Please configure Ollama or Groq."
-        reply = ""  # discard any partial Ollama output before falling back
-        try:
-            for token in self._groq_stream(messages, max_tokens=8192):
+            for token in self._ollama_stream(messages, max_tokens=8192):
                 reply += token
             return reply
         except Exception as e:
-            return f"Error generating content: {e}"
+            return f"AI agent unavailable: {e}. Please ensure Ollama is running."
 
     def clear_history(self):
         self.history = []
@@ -183,36 +155,3 @@ class TranscriptAgent:
                         yield content
                     if chunk.get("done"):
                         break
-
-    # ─────────────────────────────────────────────────────────
-    #  Groq streaming (OpenAI-compatible REST, via httpx)
-    # ─────────────────────────────────────────────────────────
-    def _groq_stream(self, messages: list[dict], max_tokens: int = 8192) -> Iterator[str]:
-        url     = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type":  "application/json",
-        }
-        payload = {
-            "model":       GROQ_MODEL,
-            "messages":    messages,
-            "stream":      True,
-            "max_tokens":  max_tokens,
-            "temperature": 0.7,
-        }
-        with httpx.Client(timeout=180.0) as client:
-            with client.stream("POST", url, headers=headers, json=payload) as resp:
-                resp.raise_for_status()
-                for line in resp.iter_lines():
-                    if not line or not line.startswith("data: "):
-                        continue
-                    raw = line[6:].strip()
-                    if raw == "[DONE]":
-                        break
-                    try:
-                        chunk = json.loads(raw)
-                    except json.JSONDecodeError:
-                        continue
-                    delta = chunk["choices"][0]["delta"].get("content", "")
-                    if delta:
-                        yield delta

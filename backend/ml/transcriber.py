@@ -45,9 +45,9 @@ class Transcriber:
             whisper_model_id, token=hf_token,
         )
         # Use fp16 on CUDA, fp32 on CPU
-        torch_dtype = torch.float16 if self.device == "cuda" else torch.float32
+        self.torch_dtype = torch.float16 if self.device == "cuda" else torch.float32
         self.asr_model = WhisperForConditionalGeneration.from_pretrained(
-            whisper_model_id, token=hf_token, torch_dtype=torch_dtype,
+            whisper_model_id, token=hf_token, torch_dtype=self.torch_dtype,
         ).to(self.device)
         self.asr_model.eval()
 
@@ -55,16 +55,16 @@ class Transcriber:
         self.asr_model.generation_config.language           = None
         self.asr_model.generation_config.task               = "transcribe"
         self.asr_model.generation_config.forced_decoder_ids = None
-        print("[Transcriber] Whisper loaded ✓")
+        print("[Transcriber] Whisper loaded")
 
         # ── Load translation model ────────────────────────────
         print(f"[Transcriber] Loading translation: {translation_model_id}")
         self.trans_tokenizer = AutoTokenizer.from_pretrained(translation_model_id)
         self.trans_model = AutoModelForSeq2SeqLM.from_pretrained(
-            translation_model_id, torch_dtype=torch_dtype,
+            translation_model_id, torch_dtype=self.torch_dtype,
         ).to(self.device)
         self.trans_model.eval()
-        print("[Transcriber] Translation model loaded ✓")
+        print("[Transcriber] Translation model loaded")
 
     # ─────────────────────────────────────────────────────────
     #  1. Speech → Text
@@ -90,7 +90,10 @@ class Transcriber:
         ).to(self.device)
 
         with torch.inference_mode():   # slightly faster than no_grad
-            generated_ids = self.asr_model.generate(inputs.input_features)
+            # Cast to model dtype (fp16 on GPU, fp32 on CPU) — processor always returns fp32
+            generated_ids = self.asr_model.generate(
+                inputs.input_features.to(self.torch_dtype)
+            )
 
         return self.processor.batch_decode(
             generated_ids, skip_special_tokens=True
@@ -126,10 +129,12 @@ class Transcriber:
         ).to(self.device)
 
         with torch.inference_mode():
+            # Cast input_ids to long (tokenizer) and encoder hidden states to model dtype
             translated_ids = self.trans_model.generate(
-                **inputs,
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs.get("attention_mask"),
                 max_length=512,
-                num_beams=TRANS_BEAMS,   # 2 instead of 4: 2x faster
+                num_beams=TRANS_BEAMS,
             )
 
         return self.trans_tokenizer.batch_decode(
@@ -180,7 +185,10 @@ class Transcriber:
         ).to(self.device)
 
         with torch.inference_mode():
-            generated_ids = self.asr_model.generate(inputs.input_features)
+            # Cast to model dtype (fp16 on GPU) — processor always returns fp32
+            generated_ids = self.asr_model.generate(
+                inputs.input_features.to(self.torch_dtype)
+            )
 
         raw_text     = self.processor.batch_decode(
             generated_ids, skip_special_tokens=True

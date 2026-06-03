@@ -18,13 +18,15 @@ import os
 import json
 import shutil
 import time
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List
 
 from ml.audio_processor import convert_to_wav, remove_noise, chunk_audio
-from ml.cleaner         import clean_transcript
-from ml.note_structurer import NoteStructurer
+from ml.cleaner         import clean_transcript as _asr_cleaner
+from ml.polisher        import polish_transcript
 from ml.credibility     import score_t5_faithfulness, build_credibility_report
+import ml.nlp_agent as nlp_agent
 
 # ── Set torch thread counts ONCE at import time ───────────────
 # These can only be set before any parallel work starts.
@@ -53,11 +55,18 @@ SKIP_NR_SECS = int(os.getenv("SKIP_NR_SECS", "900"))   # 15 minutes
 # causing the last ~8 s of each chunk to be silently TRUNCATED by Whisper.
 CHUNK_SECS = int(os.getenv("CHUNK_SECS", "25"))
 
-# Fix 5: Max seconds to wait for a single chunk to finish.
-# 90 s is safe even on a slow CPU for a 25-s audio segment.
-CHUNK_TIMEOUT = int(os.getenv("CHUNK_TIMEOUT_S", "90"))
+print(f"[Pipeline] workers={MAX_WORKERS}  chunk={CHUNK_SECS}s  noise-reduction=per-chunk")
 
-print(f"[Pipeline] workers={MAX_WORKERS}  chunk={CHUNK_SECS}s  timeout={CHUNK_TIMEOUT}s  noise-reduction=per-chunk")
+# ── Global Concurrency Controls ───────────────────────────────
+# 1. Global executor for chunk transcription (prevents CPU thrashing when N users upload)
+_global_chunk_executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+
+# 3. Global timeout for chunk transcription
+CHUNK_TIMEOUT = int(os.getenv("CHUNK_TIMEOUT", "600"))
+
+# 4. Cancellation control
+CANCELLED_JOBS = set()
+SHUTDOWN = False
 
 
 # ─────────────────────────────────────────────────────────────
@@ -168,14 +177,6 @@ def _transcribe_one_chunk(args: tuple) -> dict:
         }
 
 
-# ─────────────────────────────────────────────────────────────
-#  Worker: summarise ONE T5 segment
-# ─────────────────────────────────────────────────────────────
-def _summarise_segment(args: tuple) -> tuple:
-    """Returns (index, summary_text). torch settings already applied at import."""
-    idx, text, structurer = args
-    summary = structurer._summarise_segment(text)
-    return idx, summary
 
 
 # ─────────────────────────────────────────────────────────────
@@ -186,7 +187,7 @@ def run_full_pipeline(
     file_path:     str,
     db,                       # unused (pipeline opens its own session)
     transcriber,
-    structurer:    NoteStructurer,
+    structurer=None,          # legacy param — kept for call-site compat, ignored
 ) -> None:
     """
     Full pipeline executed in a background thread.
@@ -198,9 +199,10 @@ def run_full_pipeline(
         Transcription, StructuredNotes,
     )
 
-    db       = SessionLocal()
-    tmp_dirs: List[str] = []
-    tmp_files: List[str] = []
+    db          = SessionLocal()
+    tmp_dirs:   List[str] = []
+    tmp_files:  List[str] = []
+    _job_done   = False   # set True only on success → triggers original-file deletion
     t0 = time.time()
 
     def _elapsed():
@@ -209,6 +211,10 @@ def run_full_pipeline(
     try:
         record = db.query(AudioFile).filter(AudioFile.id == audio_file_id).first()
         if not record:
+            return
+
+        if audio_file_id in CANCELLED_JOBS or SHUTDOWN:
+            print(f"[Pipeline] Job {audio_file_id} cancelled early.")
             return
 
         # ── Stage 1: Convert to WAV ───────────────────────────
@@ -236,6 +242,11 @@ def run_full_pipeline(
         chunks = chunk_audio(wav_path, chunk_dir, chunk_duration_ms=CHUNK_SECS * 1_000)
         print(f"[Pipeline] {len(chunks)} chunks created  {_elapsed()}")
 
+        if audio_file_id in CANCELLED_JOBS or SHUTDOWN:
+            print(f"[Pipeline] Job {audio_file_id} cancelled after chunking.")
+            return
+
+
         # ── Stage 3: Parallel Transcription ──────────────────
         record.status = "transcribing"
         db.commit()
@@ -244,18 +255,21 @@ def run_full_pipeline(
         args_list     = [(chunk, transcriber) for chunk in chunks]
         total_chunks  = len(chunks)
 
-        # ── Fix 1 + Fix 5: Bulletproof collection with per-chunk timeout ──────
-        # We wrap future.result() in try/except so that ONE bad future can NEVER
-        # break the as_completed loop and silently orphan all remaining chunks.
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
-            future_to_idx = {
-                pool.submit(_transcribe_one_chunk, a): i
-                for i, a in enumerate(args_list)
-            }
-            completed = 0
-            # Outer timeout = CHUNK_TIMEOUT × total chunks (absolute max wall time)
-            for future in as_completed(future_to_idx, timeout=CHUNK_TIMEOUT * total_chunks):
+        # ── Fix 1 + Fix 5: Bulletproof collection with global executor ──────
+        # Submit to the global executor instead of creating a local one.
+        future_to_idx = {
+            _global_chunk_executor.submit(_transcribe_one_chunk, a): i
+            for i, a in enumerate(args_list)
+        }
+        completed = 0
+        # Wait indefinitely for completion because queue wait times can be long under load
+        for future in as_completed(future_to_idx):
                 idx = future_to_idx[future]
+
+                if audio_file_id in CANCELLED_JOBS or SHUTDOWN:
+                    print(f"[Pipeline] Job {audio_file_id} cancelled during transcription.")
+                    return
+
                 try:
                     chunk_results[idx] = future.result(timeout=CHUNK_TIMEOUT)
                 except Exception as exc:
@@ -308,6 +322,10 @@ def run_full_pipeline(
             f"({skipped_count} silent/hallucination skipped, {err_count} errors)  {_elapsed()}"
         )
 
+        if audio_file_id in CANCELLED_JOBS or SHUTDOWN:
+            print(f"[Pipeline] Job {audio_file_id} cancelled before DB write.")
+            return
+
         # ── Stage 4: Clean, collect English text ─────────────
         all_english_texts = []
         cleaned_results   = []   # for batch DB write
@@ -318,9 +336,9 @@ def run_full_pipeline(
             # Skip chunks that were silenced or detected as hallucinations
             if cr.get("_skipped"):
                 continue
-            # Compute chunk audio duration for density check
+            # Light ASR-level clean (filler/duplicate removal only — not LLM)
             chunk_dur = cr.get("end", 0.0) - cr.get("start", 0.0)
-            cleaned = clean_transcript(cr["raw_text"], audio_duration_s=chunk_dur)
+            cleaned = _asr_cleaner(cr["raw_text"], audio_duration_s=chunk_dur)
             cleaned_results.append((i, cr, cleaned))
             if cr["english_text"].strip():
                 all_english_texts.append(cr["english_text"])
@@ -348,96 +366,43 @@ def run_full_pipeline(
         db.commit()   # ONE commit for ALL chunks + transcriptions
         print(f"[Pipeline] DB write done  {_elapsed()}")
 
-        # ── Stage 5: Parallel T5 Note Structuring ─────────────
+        # ── Stage 5: Qwen NLP Agent — Clean → Reconstruct → Topics → Notes ──
         record.status = "structuring"
         db.commit()
+
+        if audio_file_id in CANCELLED_JOBS or SHUTDOWN:
+            print(f"[Pipeline] Job {audio_file_id} cancelled before structuring.")
+            return
 
         full_transcript = " ".join(all_english_texts)
 
         if not full_transcript.strip():
             notes_dict = {
                 "title": "Lecture Notes", "summary": "No speech detected.",
-                "key_points": [], "sections": [], "full_transcript": "", "word_count": 0,
+                "main_topic": "", "subtopics": [], "keywords": [],
+                "key_points": [], "sections": [], "full_transcript": "",
+                "clean_transcript": "", "reconstructed_text": "",
+                "polished_transcript": "", "word_count": 0,
             }
         else:
-            import re
-            # Split into segments (same logic as NoteStructurer.structure_notes)
-            sentences    = re.split(r'(?<=[.!?])\s+', full_transcript)
-            segments, current, current_len = [], [], 0
-            MAX_CHARS = structurer.MAX_INPUT_CHARS
+            print(
+                f"[Pipeline] Qwen NLP Agent processing "
+                f"{len(full_transcript.split())} words…  {_elapsed()}"
+            )
+            notes_dict = nlp_agent.process_transcript(full_transcript)
+            notes_dict["polished_transcript"] = notes_dict.get("clean_transcript", "")
+            print(f"[Pipeline] Qwen NLP Agent done  {_elapsed()}")
 
-            for sentence in sentences:
-                current.append(sentence)
-                current_len += len(sentence)
-                if current_len >= MAX_CHARS:
-                    segments.append(" ".join(current))
-                    current, current_len = [], 0
-            if current:
-                segments.append(" ".join(current))
-
-            print(f"[Pipeline] T5 summarising {len(segments)} segments in parallel  {_elapsed()}")
-
-            # Parallel T5: dedicate ≤4 workers (T5 is small, diminishing returns)
-            t5_workers  = min(len(segments), MAX_WORKERS, 4)
-            summaries   = [None] * len(segments)
-            t5_args     = [(i, seg, structurer) for i, seg in enumerate(segments)]
-
-            with ThreadPoolExecutor(max_workers=t5_workers) as pool:
-                t5_futures = {
-                    pool.submit(_summarise_segment, a): a[0]
-                    for a in t5_args
-                }
-                for fut in as_completed(t5_futures):
-                    seg_idx, summary = fut.result()
-                    summaries[seg_idx] = summary
-
-            summaries = [s for s in summaries if s]
-            print(f"[Pipeline] T5 done  {_elapsed()}")
-
-            # Build structured output (same as NoteStructurer.structure_notes)
-            word_count = len(full_transcript.split())
-            title      = "Lecture Notes"
-            if summaries:
-                first_sent = re.split(r'[.!?]', summaries[0])[0].strip()
-                if 10 < len(first_sent) < 80:
-                    title = first_sent
-
-            sections = []
-            for i, summary in enumerate(summaries):
-                heading = f"Section {i + 1}"
-                words = summary.split()
-                if len(words) >= 5:
-                    candidate = " ".join(words[:5]).rstrip(".,;:")
-                    if len(candidate) < 60:
-                        heading = candidate.title()
-                # Split summary into per-section key points
-                raw_sents = re.split(r'(?<=[.!?])\s+', summary.strip())
-                key_pts   = [s.strip() for s in raw_sents if len(s.strip()) > 20]
-                sections.append({
-                    "heading":    heading,
-                    "definition": summary,
-                    "key_points": key_pts,
-                })
-
-            overview_points = [
-                re.split(r'[.!?]', s)[0].strip()
-                for s in summaries if s.strip()
-            ]
-
-            notes_dict = {
-                "title":           title,
-                "summary":         summaries[0] if summaries else "No summary.",
-                "key_points":      overview_points,
-                "sections":        sections,
-                "full_transcript": full_transcript,
-                "word_count":      word_count,
-            }
-
-        notes_text     = NoteStructurer.to_plain_text(notes_dict)
+        notes_text     = nlp_agent.to_plain_text(notes_dict)
         notes_json_str = json.dumps(notes_dict)
 
+
+        if audio_file_id in CANCELLED_JOBS or SHUTDOWN:
+            print(f"[Pipeline] Job {audio_file_id} cancelled after structuring.")
+            return
+
         # ── Stage 6: Credibility Scoring ──────────────────────
-        # Score T5 faithfulness (ROUGE + coverage) — ~0.1s, no extra model
+        # Score faithfulness (ROUGE + coverage) — ~0.1s, no extra model
         try:
             t5_score       = score_t5_faithfulness(
                 full_transcript if full_transcript.strip() else "",
@@ -463,7 +428,8 @@ def run_full_pipeline(
 
         record.status = "done"
         db.commit()
-        print(f"[Pipeline] Job {audio_file_id} DONE  total={_elapsed()} ✓")
+        _job_done = True
+        print(f"[Pipeline] Job {audio_file_id} DONE  total={_elapsed()}")
 
     except Exception as exc:
         print(f"[Pipeline] ERROR job {audio_file_id}: {exc}")
@@ -478,24 +444,53 @@ def run_full_pipeline(
 
     finally:
         db.close()
-        # Remove temp single files
+
+        # ── Remove intermediate temp files (_raw.wav, _clean.wav) ────────
         for f in tmp_files:
             try:
                 if os.path.isfile(f):
                     os.remove(f)
-            except OSError:
-                pass
-        # Remove chunk directories
+                    print(f"[Pipeline] Cleaned temp file: {f}")
+            except OSError as e:
+                print(f"[Pipeline] Could not remove temp file {f}: {e}")
+
+        # ── Remove chunk directories ──────────────────────────────────────
         for d in tmp_dirs:
             try:
                 if os.path.isdir(d):
                     shutil.rmtree(d, ignore_errors=True)
-            except Exception:
-                pass
-        # Also clean any _chunks dir derived from file_path
+                    print(f"[Pipeline] Cleaned chunk dir: {d}")
+            except Exception as e:
+                print(f"[Pipeline] Could not remove chunk dir {d}: {e}")
+
+        # ── Also catch any _chunks dir that wasn't tracked in tmp_dirs ────
         try:
-            derived = os.path.splitext(file_path)[0] + "_chunks"
-            if os.path.isdir(derived):
-                shutil.rmtree(derived, ignore_errors=True)
-        except Exception:
-            pass
+            derived_chunks = os.path.splitext(file_path)[0] + "_chunks"
+            if os.path.isdir(derived_chunks):
+                shutil.rmtree(derived_chunks, ignore_errors=True)
+                print(f"[Pipeline] Cleaned derived chunk dir: {derived_chunks}")
+        except Exception as e:
+            print(f"[Pipeline] Could not remove derived chunk dir: {e}")
+
+        # ── Delete original uploaded audio after successful processing ─────
+        # Only deleted on success (status=done) so the file is preserved for
+        # debugging if the pipeline failed. The DB file_path column is cleared
+        # so the DELETE /audio/{id} endpoint won't try to remove a missing file.
+        if _job_done:
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                    print(f"[Pipeline] Deleted original upload: {file_path}")
+                # Clear the file_path in DB since file no longer exists
+                _cleanup_db = SessionLocal()
+                try:
+                    _rec = _cleanup_db.query(AudioFile).filter(
+                        AudioFile.id == audio_file_id
+                    ).first()
+                    if _rec:
+                        _rec.file_path = None
+                        _cleanup_db.commit()
+                finally:
+                    _cleanup_db.close()
+            except Exception as e:
+                print(f"[Pipeline] Could not delete original upload {file_path}: {e}")

@@ -190,14 +190,14 @@ def main():
     t_load = time.perf_counter()
 
     from ml.transcriber     import Transcriber
-    from ml.note_structurer import NoteStructurer
+    from ml.model_registry  import load_qwen_model
 
     whisper_id   = os.getenv("WHISPER_MODEL_ID",   "udayakumar8214/whisper-classroom-kn-hi-en")
     trans_id     = os.getenv("TRANS_MODEL_ID",     "Helsinki-NLP/opus-mt-mul-en")
-    t5_id        = os.getenv("T5_MODEL_ID",        "udayakumar8214/t5-lecture-notes")
 
     transcriber = Transcriber(whisper_id, trans_id)
-    structurer  = NoteStructurer(t5_id)
+    load_qwen_model()
+    structurer  = None
     print(f"[Eval] Models loaded in {time.perf_counter() - t_load:.1f}s\n")
 
     run_asr    = args.model in ("asr",   "all")
@@ -260,7 +260,7 @@ def main():
     # ─────────────────────────────────────────────────────────────
     if run_notes:
         print("\n" + "━" * 60)
-        print("  Evaluating T5 Note Structurer")
+        print("  Evaluating Qwen NLP Agent")
         print("━" * 60)
 
         from ml.evaluator import NotesSample

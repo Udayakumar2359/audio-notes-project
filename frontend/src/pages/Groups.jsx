@@ -29,11 +29,11 @@ export default function Groups() {
     setSaving(true); setMsg('');
     try {
       const r = await api.post('/groups', { name: createName.trim(), description: createDesc.trim() || null });
-      setMsg(`✅ Group "${createName}" created!`);
+      setMsg(`Group "${createName}" created!`);
       setCreateName(''); setCreateDesc(''); setShowCreate(false);
       navigate(`/groups/${r.data.id}`);
     } catch (err) {
-      setMsg('❌ ' + (err.response?.data?.detail || 'Failed to create group.'));
+      setMsg('Error: ' + (err.response?.data?.detail || 'Failed to create group.'));
     } finally { setSaving(false); }
   };
 
@@ -43,11 +43,11 @@ export default function Groups() {
     setSaving(true); setMsg('');
     try {
       const r = await api.post('/groups/join', { invite_code: inviteCode.trim().toUpperCase() });
-      setMsg(`✅ ${r.data.message}`);
+      setMsg(`${r.data.message}`);
       setInviteCode(''); setShowJoin(false);
       load();
     } catch (err) {
-      setMsg('❌ ' + (err.response?.data?.detail || 'Invalid invite code.'));
+      setMsg('Error: ' + (err.response?.data?.detail || 'Invalid invite code.'));
     } finally { setSaving(false); }
   };
 
@@ -59,12 +59,23 @@ export default function Groups() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.75rem' }}>
           <div>
-            <h1 style={{ marginBottom: '0.25rem' }}>👥 Study Groups</h1>
+            <h1 style={{ marginBottom: '0.25rem' }}>Study Groups</h1>
             <p>Collaborate with classmates — share notes, study together.</p>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button id="join-group-btn" className="btn btn-secondary" onClick={() => { setShowJoin(true); setShowCreate(false); setMsg(''); }}>
-              🔑 Join Group
+            <button
+              id="join-group-btn"
+              onClick={() => { setShowJoin(true); setShowCreate(false); setMsg(''); }}
+              style={{
+                padding: '0.5rem 1.25rem', fontSize: '0.875rem', fontWeight: 600,
+                border: '1.5px solid var(--border-strong)', borderRadius: 'var(--radius-sm)',
+                background: 'transparent', color: 'var(--text-primary)',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+              onMouseOver={e => e.currentTarget.style.background = 'var(--bg-muted)'}
+              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+            >
+              Join Group
             </button>
             <button id="create-group-btn" className="btn btn-primary" onClick={() => { setShowCreate(true); setShowJoin(false); setMsg(''); }}>
               + Create Group
@@ -74,7 +85,7 @@ export default function Groups() {
 
         {/* Alert */}
         {msg && (
-          <div className={`alert ${msg.startsWith('✅') ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '1.25rem' }}>
+          <div className={`alert ${msg.startsWith('Group') || msg.startsWith('Joined') ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '1.25rem' }}>
             {msg}
           </div>
         )}
@@ -117,7 +128,7 @@ export default function Groups() {
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button type="submit" className="btn btn-success" disabled={saving}>
-                  {saving ? 'Joining…' : '🔑 Join Group'}
+                  {saving ? 'Joining…' : 'Join Group'}
                 </button>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowJoin(false)}>Cancel</button>
               </div>
@@ -133,7 +144,6 @@ export default function Groups() {
           </div>
         ) : groups.length === 0 ? (
           <div className="empty-state card">
-            <span className="empty-icon">👥</span>
             <h3 style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>No groups yet</h3>
             <p style={{ maxWidth: 360, margin: '0 auto 1.5rem' }}>
               Create your own study group or join one with an invite code.
@@ -146,25 +156,25 @@ export default function Groups() {
               <div key={g.id} className="card" style={{ cursor: 'pointer', transition: 'all var(--ease)' }}
                 onClick={() => navigate(`/groups/${g.id}`)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--brand-bg)', border: '1px solid var(--brand-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>
-                    👥
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--brand-bg)', border: '1px solid var(--brand-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1rem', color: 'var(--brand)' }}>
+                    {g.name.charAt(0).toUpperCase()}
                   </div>
                   <span className={`badge ${g.role === 'owner' ? 'badge-done' : 'badge-transcribing'}`}>
-                    {g.role === 'owner' ? '👑 Owner' : 'Member'}
+                    {g.role === 'owner' ? 'Owner' : 'Member'}
                   </span>
                 </div>
                 <h3 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>{g.name}</h3>
                 {g.description && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>{g.description}</p>}
                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-subtle)' }}>
-                  <span>👤 {g.member_count} member{g.member_count !== 1 ? 's' : ''}</span>
-                  <span>📝 {g.note_count} note{g.note_count !== 1 ? 's' : ''}</span>
+                  <span>{g.member_count} member{g.member_count !== 1 ? 's' : ''}</span>
+                  <span>{g.note_count} note{g.note_count !== 1 ? 's' : ''}</span>
                 </div>
                 {g.role === 'owner' && (
                   <div style={{ marginTop: '0.75rem', padding: '0.4rem 0.75rem', background: 'var(--bg-muted)', borderRadius: 6, fontSize: '0.78rem', fontFamily: 'monospace', letterSpacing: '0.1em', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>Code: <strong>{g.invite_code}</strong></span>
                     <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(g.invite_code); }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem' }} title="Copy code">
-                      📋
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: 'var(--brand)', fontWeight: 600 }} title="Copy code">
+                      Copy
                     </button>
                   </div>
                 )}

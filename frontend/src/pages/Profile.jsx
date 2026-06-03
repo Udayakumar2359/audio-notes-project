@@ -55,7 +55,7 @@ export default function Profile() {
     navigate('/login')
   }
 
-  const isGoogleUser = user && !user.hashed_password && user.clerk_id
+  const isGoogleUser = user && !user.hashed_password && user.google_id
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -69,7 +69,7 @@ export default function Profile() {
           <span style={{ fontWeight: 700, fontSize: '1.125rem', color: 'var(--text-primary)' }}>AudioNotes AI</span>
         </div>
         <Link to="/dashboard" style={{ color: 'var(--brand-amber)', fontWeight: 600, fontSize: '0.875rem' }}>
-          ← Dashboard
+          Dashboard
         </Link>
       </header>
 

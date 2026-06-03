@@ -149,7 +149,7 @@ function ProfileModal({ user, onClose, onLogout }) {
                 display: 'inline-block', marginTop: '0.375rem', fontSize: '0.71875rem',
                 fontWeight: 600, padding: '2px 10px', borderRadius: 20,
                 background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE',
-              }}>✉️ Email Account</span>
+              }}>Email Account</span>
             </div>
           </div>
 
@@ -159,7 +159,7 @@ function ProfileModal({ user, onClose, onLogout }) {
               { label: 'Full Name',  value: user?.name  || '—' },
               { label: 'Email',      value: user?.email || '—' },
               { label: 'Member',     value: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-IN') : '—' },
-              { label: 'Verified',   value: user?.is_verified ? '✓ Yes' : '✗ No' },
+              { label: 'Verified',   value: user?.is_verified ? 'Yes' : 'No' },
             ].map(({ label, value }) => (
               <div key={label} style={{
                 display: 'flex', justifyContent: 'space-between',
@@ -176,7 +176,7 @@ function ProfileModal({ user, onClose, onLogout }) {
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #F3F4F6' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
             <div>
-              <div style={{ fontWeight: 600, fontSize: '0.9375rem', color: '#1F2937' }}>🔒 Change Password</div>
+              <div style={{ fontWeight: 600, fontSize: '0.9375rem', color: '#1F2937' }}>Change Password</div>
               <div style={{ fontSize: '0.78125rem', color: '#6B7280', marginTop: 2 }}>Verify via email OTP</div>
             </div>
             {pwFlow === 'idle' && (
@@ -197,14 +197,14 @@ function ProfileModal({ user, onClose, onLogout }) {
             )}
           </div>
 
-          {err && <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.8125rem', marginBottom: '0.75rem' }}>⚠️ {err}</div>}
-          {msg && pwFlow !== 'otp' && <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.8125rem', marginBottom: '0.75rem' }}>✓ {msg}</div>}
+          {err && <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.8125rem', marginBottom: '0.75rem' }}>{err}</div>}
+          {msg && pwFlow !== 'otp' && <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.8125rem', marginBottom: '0.75rem' }}>{msg}</div>}
 
           {/* OTP + new password form */}
           {pwFlow === 'otp' && (
             <form onSubmit={handleVerify} noValidate>
               <p style={{ fontSize: '0.8125rem', color: '#374151', marginBottom: '0.25rem' }}>
-                📧 Enter the code sent to <strong>{user?.email}</strong>
+                Enter the code sent to <strong>{user?.email}</strong>
               </p>
               <OtpBoxes otp={otp} onChange={handleOtpChange} onKeyDown={handleOtpKey} refs={otpRefs} />
 
@@ -234,7 +234,7 @@ function ProfileModal({ user, onClose, onLogout }) {
                   borderRadius: 8, fontSize: '0.875rem', fontWeight: 700,
                   cursor: busy ? 'wait' : 'pointer',
                 }}>
-                {busy ? 'Verifying…' : '✓ Verify & Update Password'}
+                {busy ? 'Verifying…' : 'Verify & Update Password'}
               </button>
             </form>
           )}
@@ -283,9 +283,9 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { to: '/dashboard', label: '🏠 Dashboard' },
-    { to: '/upload',    label: '⬆️ Upload'    },
-    { to: '/groups',    label: '👥 Groups'    },
+    { to: '/dashboard', label: 'Dashboard' },
+    { to: '/upload',    label: 'Upload'    },
+    { to: '/groups',    label: 'Groups'    },
   ]
 
   const active = (to) => location.pathname === to || location.pathname.startsWith(to + '/')
@@ -304,7 +304,7 @@ export default function Navbar() {
       }}>
         {/* Brand */}
         <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-          <span style={{ fontSize: '1.5rem' }}>🎙️</span>
+          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#2563EB' }}>A</span>
           <span style={{ fontWeight: 800, fontSize: '1.0625rem', color: '#1F2937', letterSpacing: '-0.02em' }}>
             AudioNotes AI
           </span>

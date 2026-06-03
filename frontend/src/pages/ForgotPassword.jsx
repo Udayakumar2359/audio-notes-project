@@ -109,7 +109,7 @@ export default function ForgotPassword() {
               disabled={busy} style={{ marginTop: '0.5rem' }}>
               {busy
                 ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Sending…</>
-                : 'Send Reset Code →'}
+                : 'Send Reset Code'}
             </button>
           </form>
         )}
@@ -182,7 +182,7 @@ export default function ForgotPassword() {
 
             <button type="button" onClick={() => { setStep(1); setErr(''); setOtp(['','','','','','']) }}
               style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '0.875rem' }}>
-              ← Use different email
+              Use different email
             </button>
           </form>
         )}
@@ -194,7 +194,7 @@ export default function ForgotPassword() {
             <p style={{ color: '#166534', fontWeight: 600, marginBottom: '1.5rem' }}>{msg}</p>
             <button onClick={() => navigate('/login', { replace: true })}
               className="btn btn-primary btn-full btn-lg">
-              Sign In Now →
+              Sign In Now
             </button>
           </div>
         )}
@@ -203,7 +203,7 @@ export default function ForgotPassword() {
         {step !== 3 && (
           <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#6B7280', marginTop: '1.25rem' }}>
             Remember your password?{' '}
-            <Link to="/login" style={{ fontWeight: 600, color: '#D97706' }}>Sign in →</Link>
+            <Link to="/login" style={{ fontWeight: 600, color: '#D97706' }}>Sign in</Link>
           </p>
         )}
       </div>

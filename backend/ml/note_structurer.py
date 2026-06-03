@@ -2,58 +2,71 @@
 # ─────────────────────────────────────────────────────────────
 # Note Structuring Pipeline
 #
-# Fine-tuned T5 model: udayakumar8214/t5-lecture-notes
-# Converts cleaned English transcript into structured JSON notes.
+# Model: allenai/led-base-16384  (Longformer Encoder-Decoder)
+# Long-document abstractive summarisation — handles full lecture
+# transcripts up to 16 384 tokens in a single pass (no chunking).
+#
+# Output shape (same dict schema as before, so the rest of the
+# codebase is unaffected):
+#   {title, summary, key_points, sections, full_transcript, word_count}
 # ─────────────────────────────────────────────────────────────
 
+from __future__ import annotations
 import os
 import re
 import json
 import torch
-from transformers import T5Tokenizer, T5ForConditionalGeneration
+from transformers import AutoTokenizer, LEDForConditionalGeneration
 
 
 class NoteStructurer:
     """
-    Loads the fine-tuned T5 notes model from HuggingFace Hub.
-    Converts full English transcript → structured dict of academic notes.
+    Wraps the LED-base-16384 model.
+    Converts a full English transcript → structured notes dict.
     """
 
-    MAX_INPUT_CHARS   = 1_400   # chars per T5 segment
-    MAX_INPUT_TOKENS  = 512
-    MAX_OUTPUT_TOKENS = 256     # bumped for richer, longer notes
-    # num_beams=4 → noticeably better output with no retraining
-    NUM_BEAMS         = int(os.getenv("T5_BEAMS", "4"))
+    # LED can handle up to 16 384 tokens; we cap slightly below to stay safe
+    MAX_INPUT_TOKENS  = 14_336
+    MAX_OUTPUT_TOKENS = int(os.getenv("LED_MAX_OUTPUT", "1024"))
+    NUM_BEAMS         = int(os.getenv("T5_BEAMS", "2"))      # env reuse for compat
 
     def __init__(self, model_id: str):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        hf_token = os.getenv("HF_TOKEN")
-        print(f"[NoteStructurer] Loading T5: {model_id}")
-        self.tokenizer = T5Tokenizer.from_pretrained(model_id, token=hf_token)
-        self.model     = T5ForConditionalGeneration.from_pretrained(
+        self.device   = "cuda" if torch.cuda.is_available() else "cpu"
+        hf_token      = os.getenv("HF_TOKEN")
+        print(f"[NoteStructurer] Loading LED model: {model_id}")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
+        self.model     = LEDForConditionalGeneration.from_pretrained(
             model_id, token=hf_token
         ).to(self.device)
-        print("[NoteStructurer] T5 loaded ✓")
+        print("[NoteStructurer] LED model loaded ✓")
 
     # ─────────────────────────────────────────────────────────
-    #  Internal: summarise one text segment
+    #  Internal: summarise the full transcript in one pass
     # ─────────────────────────────────────────────────────────
-    def _summarise_segment(self, text: str) -> str:
-        input_text = "summarize: " + text
-        tokens = self.tokenizer(
-            input_text,
+    def _summarise(self, text: str) -> str:
+        """Run LED summarisation on the full transcript."""
+        # LED accepts long input without a task prefix
+        inputs = self.tokenizer(
+            text,
             return_tensors="pt",
             max_length=self.MAX_INPUT_TOKENS,
             truncation=True,
+            padding="longest",
         ).to(self.device)
+
+        # LED requires global_attention_mask on the first token
+        global_attention_mask = torch.zeros_like(inputs["input_ids"])
+        global_attention_mask[:, 0] = 1          # attend globally on <s>
 
         with torch.inference_mode():
             output_ids = self.model.generate(
-                **tokens,
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs["attention_mask"],
+                global_attention_mask=global_attention_mask,
                 max_length=self.MAX_OUTPUT_TOKENS,
                 num_beams=self.NUM_BEAMS,
-                no_repeat_ngram_size=3,   # prevents repetitive phrases
-                length_penalty=1.5,        # encourages longer, complete outputs
+                no_repeat_ngram_size=3,
+                length_penalty=2.0,
                 early_stopping=True,
             )
         return self.tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
@@ -63,14 +76,13 @@ class NoteStructurer:
     # ─────────────────────────────────────────────────────────
     def structure_notes(self, full_transcript: str) -> dict:
         """
-        Split transcript into 1400-char segments, run T5 summarisation
-        on each, then build a structured dict with:
-          - title
-          - summary (one-liner)
-          - key_points (list of bullet strings)
-          - sections (list of {heading, content})
-          - full_transcript
-          - word_count
+        Run LED on the full transcript and return a structured dict:
+          title          – derived from first sentence of summary
+          summary        – full LED output (flowing paragraph)
+          key_points     – individual sentences from the summary
+          sections       – each sentence-group wrapped as a section
+          full_transcript
+          word_count
         """
         if not full_transcript.strip():
             return {
@@ -82,80 +94,51 @@ class NoteStructurer:
                 "word_count":      0,
             }
 
-        # ── Segment the transcript ────────────────────────────
-        sentences = re.split(r'(?<=[.!?])\s+', full_transcript)
-        segments, current, current_len = [], [], 0
-
-        for sentence in sentences:
-            current.append(sentence)
-            current_len += len(sentence)
-            if current_len >= self.MAX_INPUT_CHARS:
-                segments.append(" ".join(current))
-                current, current_len = [], 0
-        if current:
-            segments.append(" ".join(current))
-
-        # ── Summarise each segment ────────────────────────────
-        summaries = []
-        for i, seg in enumerate(segments):
-            print(f"[NoteStructurer] Summarising segment {i+1}/{len(segments)}…")
-            summary = self._summarise_segment(seg)
-            if summary:
-                summaries.append(summary)
-
-        # ── Build structured output ───────────────────────────
         word_count = len(full_transcript.split())
+        print("[NoteStructurer] Running LED summarisation…")
+        summary_text = self._summarise(full_transcript)
+        print(f"[NoteStructurer] Summary: {len(summary_text)} chars ✓")
 
-        # Extract a title from the first summary sentence
+        # ── Extract title from the first sentence ─────────────
         title = "Lecture Notes"
-        if summaries:
-            first_sent = re.split(r'[.!?]', summaries[0])[0].strip()
-            if 10 < len(first_sent) < 80:
-                title = first_sent
+        first_sent = re.split(r"[.!?]", summary_text)[0].strip()
+        if 10 < len(first_sent) < 100:
+            title = first_sent
 
-        # ── Build sections with heading + definition + key_points ──
-        # Each section gets:
-        #   heading    – 4-6 word topic label
-        #   definition – the full T5 summary paragraph
-        #   key_points – individual sentences extracted from the summary
-        sections = []
-        for i, summary in enumerate(summaries):
-            # Derive a short heading from the summary
-            heading = f"Section {i + 1}"
-            words = summary.split()
-            if len(words) >= 5:
-                heading_candidate = " ".join(words[:5]).rstrip(".,;:")
-                if len(heading_candidate) < 60:
-                    heading = heading_candidate.title()
+        # ── Split into individual sentences for key_points ────
+        raw_sentences = re.split(r"(?<=[.!?])\s+", summary_text.strip())
+        sentences     = [s.strip() for s in raw_sentences if len(s.strip()) > 20]
 
-            # Extract key points: split on sentence boundaries
-            raw_sentences = re.split(r'(?<=[.!?])\s+', summary.strip())
-            key_pts = [s.strip() for s in raw_sentences if len(s.strip()) > 20]
-
+        # ── Build sections: group every 2-3 sentences together ─
+        GROUP_SIZE = 3
+        sections   = []
+        for i in range(0, len(sentences), GROUP_SIZE):
+            group   = sentences[i : i + GROUP_SIZE]
+            para    = " ".join(group)
+            # Short heading from first 6 words of first sentence
+            words   = group[0].split()
+            heading = " ".join(words[:6]).rstrip(".,;:") if len(words) >= 5 else f"Section {len(sections)+1}"
+            heading = heading.title()
             sections.append({
                 "heading":    heading,
-                "definition": summary,        # full paragraph
-                "key_points": key_pts,        # bullet sentences
+                "definition": para,          # full paragraph for this section
+                "key_points": group,         # individual bullet sentences
             })
 
-        # Top-level key_points = first sentence of every section (overview bullets)
-        overview_points = [
-            re.split(r'[.!?]', s)[0].strip()
-            for s in summaries
-            if s.strip()
-        ]
+        # Top-level key_points = one bullet per section (first sentence each)
+        key_points = [sec["key_points"][0] for sec in sections if sec["key_points"]]
 
         return {
             "title":           title,
-            "summary":         summaries[0] if summaries else "No summary available.",
-            "key_points":      overview_points,
+            "summary":         summary_text,   # full LED output shown as Overview
+            "key_points":      key_points,
             "sections":        sections,
             "full_transcript": full_transcript,
             "word_count":      word_count,
         }
 
     # ─────────────────────────────────────────────────────────
-    #  Plain text rendition (for TXT download / DB notes_text)
+    #  Plain text rendition (TXT download / DB notes_text)
     # ─────────────────────────────────────────────────────────
     @staticmethod
     def to_plain_text(notes_dict: dict) -> str:
@@ -168,12 +151,10 @@ class NoteStructurer:
             "",
         ]
 
-        # ── Overview ──────────────────────────────────────────
         summary = notes_dict.get("summary", "")
         if summary:
             lines += ["─" * 60, "  OVERVIEW", "─" * 60, "", f"  {summary}", ""]
 
-        # ── Sections: Heading → Definition → Key Points ───────
         sections = notes_dict.get("sections", [])
         if sections:
             lines += ["─" * 60, "  DETAILED NOTES", "─" * 60, ""]

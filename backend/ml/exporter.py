@@ -30,8 +30,8 @@ def _is_bullet(line: str) -> bool:
 # ─────────────────────────────────────────────────────────────
 
 def export_txt(notes_dict: dict) -> bytes:
-    from ml.note_structurer import NoteStructurer
-    text = NoteStructurer.to_plain_text(notes_dict)
+    from ml.nlp_agent import to_plain_text
+    text = to_plain_text(notes_dict)
     return text.encode("utf-8")
 
 
@@ -114,7 +114,7 @@ def export_docx(notes_dict: dict) -> bytes:
             heading = _strip_md(sec.get("heading", ""))
             if heading:
                 doc.add_heading(heading, level=2)
-            content = _strip_md(sec.get("content", ""))
+            content = _strip_md(sec.get("definition", "") or sec.get("content", ""))
             for raw_line in content.split('\n'):
                 line = raw_line.strip()
                 if not line:
@@ -278,7 +278,7 @@ def export_pdf(notes_dict: dict) -> bytes:
             heading = _strip_md(sec.get("heading", ""))
             if heading:
                 story.append(Paragraph(heading, h2_s))
-            content = _strip_md(sec.get("content", ""))
+            content = _strip_md(sec.get("definition", "") or sec.get("content", ""))
             for line in content.split('\n'):
                 raw = line
                 line = line.strip()

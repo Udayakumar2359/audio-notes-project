@@ -2,10 +2,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # AudioNotes AI — Model Evaluation Framework
 #
-# Evaluates all three models in the pipeline:
+# Evaluates all models in the pipeline:
 #   1. Whisper ASR     → WER, CER, RTF
 #   2. Translation     → BLEU, chrF (sacrebleu)
-#   3. T5 Structurer   → ROUGE-1/2/L, coverage, latency
+#   3. Qwen NLP Agent  → ROUGE-1/2/L, coverage, latency
 #
 # Usage:
 #   from ml.evaluator import run_all_evaluations
@@ -59,8 +59,8 @@ class TranslationSample:
 
 @dataclass
 class NotesSample:
-    """One test sample for T5 note-structuring evaluation."""
-    input_transcript: str          # English transcript fed to T5
+    """One test sample for Qwen NLP Agent evaluation."""
+    input_transcript: str          # English transcript fed to the Qwen NLP Agent
     reference_notes:  str          # reference summary / structured notes text
 
 @dataclass
@@ -284,7 +284,7 @@ def evaluate_translation(transcriber, samples: List[TranslationSample]) -> Trans
 
 def evaluate_notes(structurer, samples: List[NotesSample]) -> NotesMetrics:
     """
-    Compute ROUGE scores and word coverage for the T5 notes model.
+    Compute ROUGE scores and word coverage for the Qwen NLP Agent.
 
     ROUGE-1:  unigram overlap with reference
     ROUGE-2:  bigram overlap
@@ -301,17 +301,18 @@ def evaluate_notes(structurer, samples: List[NotesSample]) -> NotesMetrics:
     r1s, r2s, rLs, coverages, latencies = [], [], [], [], []
     errors = []
 
-    print(f"\n[Evaluator] T5 Notes — evaluating {len(samples)} samples…")
+    print(f"\n[Evaluator] Qwen NLP Agent — evaluating {len(samples)} samples…")
 
     for i, s in enumerate(samples):
         try:
             t0        = time.perf_counter()
-            notes_dict = structurer.structure_notes(s.input_transcript)
+            # Use the new Qwen NLP agent pipeline
+            from ml import nlp_agent
+            notes_dict = nlp_agent.process_transcript(s.input_transcript)
             elapsed   = time.perf_counter() - t0
 
             # Flatten generated notes to plain text
-            from ml.note_structurer import NoteStructurer
-            generated_text = NoteStructurer.to_plain_text(notes_dict)
+            generated_text = nlp_agent.to_plain_text(notes_dict)
 
             scores = scorer.score(s.reference_notes, generated_text)
             r1s.append(scores["rouge1"].fmeasure)
@@ -362,7 +363,8 @@ def measure_pipeline_latency(transcriber, structurer, wav_path: str) -> float:
 
     t0 = time.perf_counter()
     result     = transcriber.process_chunk_array(audio_np, sr)
-    notes_dict = structurer.structure_notes(result["english_text"])
+    from ml import nlp_agent
+    notes_dict = nlp_agent.process_transcript(result["english_text"])
     return round(time.perf_counter() - t0, 3)
 
 
@@ -386,7 +388,7 @@ def build_report(
     if translation:
         lines.append(f"Translate→ BLEU={translation.bleu}  chrF={translation.chrf}  lat={translation.latency_s}s  ({translation.samples} samples)")
     if notes:
-        lines.append(f"T5 Notes → ROUGE-1={notes.rouge1}%  ROUGE-2={notes.rouge2}%  ROUGE-L={notes.rougeL}%  cov={notes.coverage}%  ({notes.samples} samples)")
+        lines.append(f"Qwen NLP → ROUGE-1={notes.rouge1}%  ROUGE-2={notes.rouge2}%  ROUGE-L={notes.rougeL}%  cov={notes.coverage}%  ({notes.samples} samples)")
     if pipeline_s:
         lines.append(f"Pipeline → end-to-end={pipeline_s}s per clip")
 
@@ -434,7 +436,7 @@ def print_report(report: EvaluationReport):
     if report.notes:
         m = report.notes
         print(f"\n{'─'*w}")
-        print(f"  3. T5 Note Structurer  ({m.samples} test samples)")
+        print(f"  3. Qwen NLP Agent  ({m.samples} test samples)")
         print(f"{'─'*w}")
         _row("ROUGE-1 (F1)",    m.rouge1,   "%",  lower_is_better=False, excellent=40, good=25)
         _row("ROUGE-2 (F1)",    m.rouge2,   "%",  lower_is_better=False, excellent=18, good=10)
