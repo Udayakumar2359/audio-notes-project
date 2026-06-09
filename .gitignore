@@ -1,6 +1,6 @@
 # AudioNotes AI - Gitignore
 
-# Python
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
@@ -12,43 +12,91 @@ ENV/
 dist/
 build/
 
-# Environment files (keep .env.example, ignore real .env)
+# ── Environment & Secrets ─────────────────────────────────────────────────────
 .env
 .env.local
 .env.production
+.env.staging
 !.env.example
 
-# Database
+# ── Database files ────────────────────────────────────────────────────────────
 *.db
+*.sqlite
 *.sqlite3
+local_dev.db
 
-# Upload / temp folders
+# ── Uploaded user audio / video files (large binary blobs) ───────────────────
+backend/uploads/
 uploads/
+*.mp3
+*.wav
+*.webm
+*.m4a
+*.ogg
+*.flac
+*_raw.wav
+*_chunks/
+
+# ── ML model weights & training artefacts ────────────────────────────────────
 models/
 local_cache/
-
-# Node.js
-node_modules/
-frontend/dist/
-frontend/.env.local
-frontend/.env.production
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Notebooks
-.ipynb_checkpoints/
-
-# ML
 *.pt
 *.pth
 *.bin
 *.onnx
 wandb/
+
+# ── Node.js ───────────────────────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production
+frontend_redesign/node_modules/
+frontend_redesign/dist/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Temporary / cache dirs ────────────────────────────────────────────────────
+.cache/
+temp/
+tmp/
+.tmp/
+
+# ── Agent / AI tool state ─────────────────────────────────────────────────────
+.agent/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Build / coverage artefacts ───────────────────────────────────────────────
+coverage/
+.nyc_output/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Docs (local reports, notes, internal documentation) ──────────────────────
+docs/
+
+# ── Local dev server starters ─────────────────────────────────────────────────
+start_servers.bat
+*.bat
