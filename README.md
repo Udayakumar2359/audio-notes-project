@@ -106,7 +106,6 @@ audio_notes_project-1/
 ├── Procfile                         ← Deployment config (Render / Heroku)
 ├── runtime.txt                      ← Python version pin
 ├── requirements.txt                 ← All Python dependencies
-├── start_servers.bat                ← One-click startup (backend + frontend)
 │
 ├── backend/
 │   ├── main.py                      ← FastAPI app — all routes (2,850+ lines)
@@ -157,7 +156,6 @@ audio_notes_project-1/
 │           ├── SharedNote.jsx       ← Public shared notes viewer
 │           └── Profile.jsx          ← User profile + account settings
 │
-├── docs/reports/                    ← Monthly project reports
 ├── notebooks/                       ← Training & evaluation notebooks
 └── uploads/                         ← User audio files at runtime (git-ignored)
 ```
