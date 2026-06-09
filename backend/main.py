@@ -64,8 +64,8 @@ from auth import (
 # ── Environment ───────────────────────────────────────────────
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 WHISPER_ID = os.getenv("WHISPER_MODEL_ID", "udayakumar8214/whisper-classroom-kn-hi-en")
-QWEN_ID    = os.getenv("QWEN_MODEL_ID",    "Qwen/Qwen2.5-7B-Instruct")
-TRANS_ID   = os.getenv("TRANSLATION_MODEL", "Helsinki-NLP/opus-mt-mul-en")
+QWEN_ID = os.getenv("QWEN_MODEL_ID", "Qwen/Qwen2.5-7B-Instruct")
+TRANS_ID = os.getenv("TRANSLATION_MODEL", "Helsinki-NLP/opus-mt-mul-en")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 ALLOWED_EXTENSIONS = {".wav", ".mp3", ".m4a", ".ogg", ".flac", ".webm", ".aac"}
@@ -91,6 +91,7 @@ async def lifespan(app: FastAPI):
 
     # ── Shutdown ──────────────────────────────────────────────
     import ml.pipeline
+
     ml.pipeline.SHUTDOWN = True
     print("[Shutdown] Marked pipeline for shutdown.")
 
@@ -195,7 +196,7 @@ def run_evaluation(
     # Whisper loads lazily; Qwen was loaded at startup.
     # evaluate_notes() calls nlp_agent internally — no structurer needed.
     transcriber = get_transcriber()
-    structurer  = None  # kept for call-site compat; ignored inside evaluate_notes()
+    structurer = None  # kept for call-site compat; ignored inside evaluate_notes()
 
     run_trans = model in ("translation", "all")
     run_notes = model in ("notes", "all")
@@ -1067,11 +1068,12 @@ def get_polished_transcript(
         .filter(StructuredNotes.audio_file_id == job_id)
         .first()
     )
-    
+
     polished_text = ""
     if notes and notes.notes_json:
         try:
             import json as _json
+
             notes_dict = _json.loads(notes.notes_json)
             polished_text = notes_dict.get("polished_transcript", "")
         except Exception:
@@ -1084,16 +1086,16 @@ def get_polished_transcript(
         .order_by(AudioChunk.chunk_index)
         .all()
     )
-    
+
     raw_parts = []
     for chunk in chunks:
         if chunk.transcription:
             text = (chunk.transcription.raw_text or "").strip()
             if text:
                 raw_parts.append(text)
-    
+
     raw_text = " ".join(raw_parts)
-    
+
     return {
         "polished_transcript": polished_text,
         "raw_transcript": raw_text,
@@ -1248,11 +1250,7 @@ def get_group_references(
         raise HTTPException(404, "Job not found.")
 
     # Collect group names that reference this note
-    group_notes = (
-        db.query(GroupNote)
-        .filter(GroupNote.audio_file_id == job_id)
-        .all()
-    )
+    group_notes = db.query(GroupNote).filter(GroupNote.audio_file_id == job_id).all()
     affected_groups = []
     for gn in group_notes:
         group = db.query(StudyGroup).filter(StudyGroup.id == gn.group_id).first()
@@ -1260,12 +1258,10 @@ def get_group_references(
             affected_groups.append({"id": group.id, "name": group.name})
 
     # Shared link tokens
-    shared_links = (
-        db.query(SharedNote)
-        .filter(SharedNote.audio_file_id == job_id)
-        .all()
-    )
-    share_tokens = [{"token": s.token, "view_count": s.view_count} for s in shared_links]
+    shared_links = db.query(SharedNote).filter(SharedNote.audio_file_id == job_id).all()
+    share_tokens = [
+        {"token": s.token, "view_count": s.view_count} for s in shared_links
+    ]
 
     return {
         "audio_file_id": job_id,
@@ -1328,6 +1324,7 @@ def delete_upload(
 
     # ── Step 4: cancel any in-flight pipeline job ────────────────────────────
     import ml.pipeline
+
     ml.pipeline.CANCELLED_JOBS.add(job_id)
 
     # Evict from in-memory agent cache
@@ -1620,8 +1617,7 @@ def agent_download_notes(
     ):
         raise HTTPException(
             503,
-            "AI model unavailable. "
-            "Start Ollama with 'ollama serve'.",
+            "AI model unavailable. " "Start Ollama with 'ollama serve'.",
         )
 
     # ── Parse the AI output into structured sections ──────────
@@ -2130,7 +2126,7 @@ def translate_note(
     # ── Build the English transcript from Whisper chunks ─────────────────
     # translated_text = the English output from Whisper + Helsinki NMT model.
     # This is the same text shown in the Transcript tab in the UI.
-    
+
     # Source: the AI-generated summary from the NLP agent (concise and accurate).
     notes = (
         db.query(StructuredNotes)
@@ -2142,6 +2138,7 @@ def translate_note(
     if notes and notes.notes_json:
         try:
             import json as _json
+
             notes_dict = _json.loads(notes.notes_json)
             source_text = notes_dict.get("summary", "")
         except Exception:
@@ -2825,8 +2822,8 @@ def health():
         "models_loaded": loaded,
         "model_ids": {
             "whisper": WHISPER_ID,
-            "qwen":    QWEN_ID,
-            "trans":   TRANS_ID,
+            "qwen": QWEN_ID,
+            "trans": TRANS_ID,
         },
     }
 

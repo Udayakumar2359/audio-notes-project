@@ -3,9 +3,11 @@
 import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api'
+import { useTheme } from '../context/ThemeContext'
 
 export default function ForgotPassword() {
   const navigate = useNavigate()
+  const { theme, toggleTheme } = useTheme()
 
   const [step,    setStep]    = useState(1)   // 1 email | 2 otp+pw | 3 done
   const [email,   setEmail]   = useState('')
@@ -73,17 +75,26 @@ export default function ForgotPassword() {
 
   return (
     <div className="auth-page page-enter">
+      {/* Theme toggle */}
+      <button
+        className="theme-toggle"
+        onClick={toggleTheme}
+        style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', zIndex: 10 }}
+      >
+        {theme === 'dark' ? 'Light' : 'Dark'}
+      </button>
       <div className="auth-card">
 
         {/* Logo */}
         <div className="auth-logo">
           <div style={{
             width: 56, height: 56, borderRadius: 16,
-            background: 'linear-gradient(135deg, #D97706, #F59E0B)',
+            background: 'var(--gradient-primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.75rem', marginBottom: '0.75rem',
-            boxShadow: '0 4px 16px rgba(217,119,6,0.35)',
-          }}>🔑</div>
+            fontSize: '1rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em',
+            margin: '0 auto 0.75rem', boxShadow: 'var(--glow-primary)',
+            fontFamily: 'Geist, sans-serif',
+          }}>AN</div>
           <h1 className="auth-title">Reset Password</h1>
           <p className="auth-subtitle">
             {step === 1 && 'Enter your email to receive a reset code'}
@@ -118,15 +129,11 @@ export default function ForgotPassword() {
         {step === 2 && (
           <form onSubmit={handleReset} noValidate>
             {/* Info */}
-            <div style={{
-              background: '#F0FDF4', border: '1px solid #BBF7D0',
-              color: '#166534', borderRadius: 10, padding: '0.75rem 1rem',
-              marginBottom: '1.25rem', fontSize: '0.875rem',
-            }}>
-              📧 Check your inbox (and Spam) for a 6-digit code sent to <strong>{email}</strong>.
+            <div className="alert alert-info" style={{ marginBottom: '1.25rem', fontSize: '0.875rem' }}>
+              Check your inbox (and Spam) for a 6-digit code sent to <strong style={{ color: 'var(--brand)' }}>{email}</strong>.
             </div>
 
-            {err && <div className="alert alert-error">⚠️ {err}</div>}
+            {err && <div className="alert alert-error">{err}</div>}
 
             <div className="form-group">
               <label className="form-label">6-Digit Reset Code</label>
@@ -137,16 +144,14 @@ export default function ForgotPassword() {
                     value={d} autoFocus={i === 0}
                     onChange={e => handleOtpChange(i, e.target.value)}
                     onKeyDown={e => handleOtpKey(i, e)}
+                    className="form-input"
                     style={{
                       width: '3rem', height: '3.25rem', textAlign: 'center',
-                      fontSize: '1.5rem', fontWeight: 700,
-                      border: '2.5px solid #D1D5DB', borderRadius: '10px',
-                      background: '#fff', color: '#1F2937', outline: 'none',
-                      transition: 'border-color 0.15s', caretColor: 'transparent',
-                      boxSizing: 'border-box',
+                      fontSize: '1.5rem', fontWeight: 700, padding: 0,
+                      fontFamily: 'JetBrains Mono, monospace', caretColor: 'transparent',
                     }}
-                    onFocus={e => e.target.style.borderColor = '#D97706'}
-                    onBlur={e  => e.target.style.borderColor = '#D1D5DB'}
+                    onFocus={e => e.target.style.borderColor = 'var(--brand)'}
+                    onBlur={e  => e.target.style.borderColor = 'var(--border)'}
                   />
                 ))}
               </div>
@@ -201,9 +206,9 @@ export default function ForgotPassword() {
 
         {/* Footer */}
         {step !== 3 && (
-          <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#6B7280', marginTop: '1.25rem' }}>
+          <p style={{ textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '1.25rem' }}>
             Remember your password?{' '}
-            <Link to="/login" style={{ fontWeight: 600, color: '#D97706' }}>Sign in</Link>
+            <Link to="/login" style={{ fontWeight: 600, color: 'var(--brand)' }}>Sign in</Link>
           </p>
         )}
       </div>

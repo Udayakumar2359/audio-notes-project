@@ -58,23 +58,21 @@ export default function SharedNote() {
   }, [token]);
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ width: 36, height: 36, border: '2.5px solid #E5E7EB', borderTopColor: '#2563EB', borderRadius: '50%', animation: 'spin 0.7s linear infinite', margin: '0 auto 1rem' }} />
-        <p style={{ color: '#6B7280' }}>Loading shared note…</p>
+        <div className="spinner" style={{ margin: '0 auto 1rem' }} />
+        <p style={{ color: 'var(--text-muted)' }}>Loading shared note…</p>
       </div>
     </div>
   );
 
   if (error) return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div style={{ maxWidth: 460, textAlign: 'center', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 20, padding: '2.5rem', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div className="card" style={{ maxWidth: 460, textAlign: 'center' }}>
         <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🔒</div>
-        <h2 style={{ marginBottom: '0.625rem', color: '#111827' }}>Link Unavailable</h2>
-        <p style={{ color: '#6B7280', marginBottom: '1.5rem' }}>{error}</p>
-        <a href="/" style={{ padding: '0.6rem 1.5rem', background: '#2563EB', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>
-          Go to AudioNotes AI
-        </a>
+        <h2 style={{ marginBottom: '0.625rem' }}>Link Unavailable</h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>{error}</p>
+        <a href="/" className="btn btn-primary">Go to AudioNotes AI</a>
       </div>
     </div>
   );
@@ -82,46 +80,44 @@ export default function SharedNote() {
   const notes = data.notes || {};
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFC' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)' }}>
       {/* Public top bar */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #E5E7EB', padding: '0 1.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '1rem', color: '#111827' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1rem' }}>🎵</div>
+      <div style={{ background: 'var(--bg-glass)', borderBottom: '1px solid var(--glass-border)', padding: '0 1.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', backdropFilter: 'var(--glass-blur)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'Geist, sans-serif', fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.7rem', fontWeight: 900, boxShadow: 'var(--glow-sm)', fontFamily: 'Geist, sans-serif', letterSpacing: '-0.02em' }}>AN</div>
           AudioNotes AI
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem', color: '#6B7280' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
           <span>👁 {data.view_count} view{data.view_count !== 1 ? 's' : ''}</span>
-          <a href="/register" style={{ padding: '0.4rem 1rem', background: '#2563EB', color: '#fff', borderRadius: 8, fontWeight: 600, textDecoration: 'none', fontSize: '0.875rem' }}>
-            Sign up free
-          </a>
+          <a href="/register" className="btn btn-primary btn-sm">Sign up free</a>
         </div>
       </div>
 
       <main style={{ maxWidth: 820, margin: '0 auto', padding: '2rem 1.5rem' }}>
 
         {/* Shared-by badge */}
-        <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '0.625rem 1rem', marginBottom: '1.5rem', fontSize: '0.85rem', color: '#1E40AF', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="alert alert-info" style={{ marginBottom: '1.5rem' }}>
           🔗 Shared by <strong>{data.shared_by}</strong> via AudioNotes AI
         </div>
 
         {/* Notes card */}
-        <div style={{ background: '#fff', borderRadius: 16, padding: '2.5rem 3rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #E5E7EB' }}>
-          {/* ── Header ──────────────────────────────────────── */}
-          <div style={{ marginBottom: '2rem', paddingBottom: '1.25rem', borderBottom: '2px solid #EFF6FF' }}>
+        <div className="card" style={{ padding: '2.5rem 3rem' }}>
+          {/* ── Header ─────────────────────── */}
+          <div style={{ marginBottom: '2rem', paddingBottom: '1.25rem', borderBottom: '1px solid var(--glass-border)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.6rem' }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#2563EB' }}>Shared Lecture Notes</span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--brand)', fontFamily: 'JetBrains Mono, monospace' }}>Shared Lecture Notes</span>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ fontSize: '0.65rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: '#EFF6FF', color: '#3B82F6', border: '1px solid #BFDBFE' }}>LED summariser</span>
-                <span style={{ fontSize: '0.8rem', color: '#9CA3AF' }}>{new Date(data.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</span>
+                <span className="badge badge-structuring">AI Summarised</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>{new Date(data.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</span>
               </div>
             </div>
             <h1 style={{ fontSize: '2rem', fontWeight: 800, lineHeight: 1.25, marginBottom: '0.4rem', color: '#111827' }}>
               {notes.title || data.filename?.replace(/\.[^.]+$/, '') || 'Lecture Notes'}
             </h1>
             <div style={{ fontSize: '0.8125rem', color: '#6B7280', display: 'flex', gap: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>📁 {data.filename}</span>
-              {data.word_count > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>📝 {data.word_count?.toLocaleString()} words</span>}
-              {notes.sections?.length > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>📑 {notes.sections.length} sections</span>}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>{data.filename}</span>
+              {data.word_count > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>{data.word_count?.toLocaleString()} words</span>}
+              {notes.sections?.length > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>{notes.sections.length} sections</span>}
             </div>
           </div>
 
@@ -136,7 +132,7 @@ export default function SharedNote() {
           {/* ── SECTIONS — one card per sentence-group ──────── */}
           {notes.sections?.length > 0 && (
             <div style={{ marginTop: '2rem' }}>
-              <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em', color: '#6B7280', textTransform: 'uppercase', marginBottom: '1.25rem' }}>📝 Detailed Notes</div>
+              <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em', color: '#6B7280', textTransform: 'uppercase', marginBottom: '1.25rem' }}>Detailed Notes</div>
               {notes.sections.map((sec, idx) => (
                 <div key={idx} style={{ borderTop: idx === 0 ? 'none' : '1px solid #F3F4F6', paddingTop: idx === 0 ? 0 : '1.75rem', marginTop: idx === 0 ? 0 : '1.75rem' }}>
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '1.05rem', fontWeight: 800, color: '#111827', marginBottom: '0.875rem' }}>
@@ -210,7 +206,7 @@ export default function SharedNote() {
         </div>
 
         {/* CTA footer */}
-        <div style={{ marginTop: '2rem', background: 'linear-gradient(135deg, #1E40AF 0%, #2563EB 100%)', borderRadius: 16, padding: '2rem', color: '#fff', textAlign: 'center' }}>
+        <div style={{ marginTop: '2rem', background: 'var(--gradient-primary)', borderRadius: 16, padding: '2rem', color: '#fff', textAlign: 'center' }}>
           <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🎵</div>
           <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>Generate your own lecture notes</h3>
           <p style={{ color: '#BFDBFE', marginBottom: '1.25rem', fontSize: '0.9rem' }}>

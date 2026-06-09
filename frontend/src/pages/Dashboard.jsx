@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../api';
+import { useTheme } from '../context/ThemeContext';
 
 const STATUS_ORDER = ['uploaded', 'converting', 'chunking', 'transcribing', 'structuring', 'done'];
 
@@ -196,39 +197,49 @@ export default function Dashboard() {
 
       <main className="container" style={{ paddingTop: '2.5rem' }}>
         {/* Page header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ marginBottom: '0.375rem' }}>
-            Good to see you, {user?.name?.split(' ')[0] || 'Student'}
-          </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9375rem' }}>
-            Your multilingual lecture recordings and AI-generated notes.
-          </p>
+        <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h1 style={{ marginBottom: '0.375rem', fontFamily: 'Geist, sans-serif' }}>
+              Good to see you, <span style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{user?.name?.split(' ')[0] || 'Student'}</span>
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9375rem' }}>
+              Your multilingual lecture recordings and AI-generated notes.
+            </p>
+          </div>
+          <Link to="/upload" className="btn btn-primary"
+            style={{ whiteSpace: 'nowrap' }}>
+            + New Upload
+          </Link>
         </div>
 
         {/* Stats row */}
         <div className="stats-row" style={{ marginBottom: '2rem' }}>
           <div className="stat-card">
-            <div className="stat-value" style={{ color: 'var(--text-primary)' }}>{uploads.length}</div>
+            <div className="stat-value">{uploads.length}</div>
             <div className="stat-label">Total Uploads</div>
           </div>
-          <div className="stat-card">
+          <div className="stat-card" style={{ borderColor: 'var(--brand-border)' }}>
             <div className="stat-value">{doneCount}</div>
             <div className="stat-label">Notes Ready</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-value" style={{ color: 'var(--warning)' }}>{busyCount}</div>
-            <div className="stat-label">Processing</div>
+          <div className="stat-card" style={{ borderColor: busyCount > 0 ? 'rgba(251,191,36,0.3)' : 'var(--glass-border)' }}>
+            <div className="stat-value" style={{ background: busyCount > 0 ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              {busyCount}
+            </div>
+            <div className="stat-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              {busyCount > 0 && <span className="pulse-dot" style={{ background: '#fbbf24', width: 6, height: 6 }} />}
+              Processing
+            </div>
           </div>
-          <div className="stat-card">
-            <div className="stat-value" style={{ fontSize: '1.25rem', paddingTop: '0.25rem' }}>KN·HI·EN</div>
+          <div className="stat-card" style={{ borderColor: 'rgba(168,85,247,0.3)' }}>
+            <div className="stat-value" style={{ background: 'linear-gradient(135deg, #a855f7, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontSize: '1.375rem', letterSpacing: '0.05em' }}>KN·HI·EN</div>
             <div className="stat-label">Languages</div>
           </div>
         </div>
 
         {/* Section header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '1.25rem' }}>My Recordings</h2>
-          <Link to="/upload" className="btn btn-primary btn-sm">+ New Upload</Link>
+          <h2 style={{ fontSize: '1.25rem', fontFamily: 'Geist, sans-serif' }}>My Recordings</h2>
         </div>
 
         {/* Content */}

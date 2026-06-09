@@ -1,6 +1,7 @@
 // frontend/src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { isSessionValid }  from './api'
+import { ThemeProvider }   from './context/ThemeContext'
 import SessionManager      from './components/SessionManager'
 import Landing             from './pages/Landing'
 import Login               from './pages/Login'
@@ -24,31 +25,33 @@ const PublicAuthRoute = ({ children }) =>
 
 export default function App() {
   return (
-    <BrowserRouter>
-      {/* Global session expiry monitor — shows banner when < 30 min left */}
-      <SessionManager />
+    <ThemeProvider>
+      <BrowserRouter>
+        {/* Global session expiry monitor — shows banner when < 30 min left */}
+        <SessionManager />
 
-      <Routes>
-        {/* Public */}
-        <Route path="/"                element={<Landing />} />
-        <Route path="/login"           element={<PublicAuthRoute><Login          /></PublicAuthRoute>} />
-        <Route path="/register"        element={<PublicAuthRoute><Register       /></PublicAuthRoute>} />
-        <Route path="/forgot-password" element={<PublicAuthRoute><ForgotPassword /></PublicAuthRoute>} />
+        <Routes>
+          {/* Public */}
+          <Route path="/"                element={<Landing />} />
+          <Route path="/login"           element={<PublicAuthRoute><Login          /></PublicAuthRoute>} />
+          <Route path="/register"        element={<PublicAuthRoute><Register       /></PublicAuthRoute>} />
+          <Route path="/forgot-password" element={<PublicAuthRoute><ForgotPassword /></PublicAuthRoute>} />
 
-        {/* Protected */}
-        <Route path="/dashboard"       element={<PrivateRoute><Dashboard   /></PrivateRoute>} />
-        <Route path="/upload"          element={<PrivateRoute><Upload      /></PrivateRoute>} />
-        <Route path="/notes/:jobId"    element={<PrivateRoute><NotesViewer /></PrivateRoute>} />
-        <Route path="/profile"         element={<PrivateRoute><Profile     /></PrivateRoute>} />
-        <Route path="/groups"          element={<PrivateRoute><Groups      /></PrivateRoute>} />
-        <Route path="/groups/:groupId" element={<PrivateRoute><GroupDetail /></PrivateRoute>} />
+          {/* Protected */}
+          <Route path="/dashboard"       element={<PrivateRoute><Dashboard   /></PrivateRoute>} />
+          <Route path="/upload"          element={<PrivateRoute><Upload      /></PrivateRoute>} />
+          <Route path="/notes/:jobId"    element={<PrivateRoute><NotesViewer /></PrivateRoute>} />
+          <Route path="/profile"         element={<PrivateRoute><Profile     /></PrivateRoute>} />
+          <Route path="/groups"          element={<PrivateRoute><Groups      /></PrivateRoute>} />
+          <Route path="/groups/:groupId" element={<PrivateRoute><GroupDetail /></PrivateRoute>} />
 
-        {/* Public shared note */}
-        <Route path="/shared/:token"   element={<SharedNote />} />
+          {/* Public shared note */}
+          <Route path="/shared/:token"   element={<SharedNote />} />
 
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }

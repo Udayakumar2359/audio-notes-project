@@ -1,16 +1,17 @@
 // frontend/src/pages/Landing.jsx
-// Public landing page — two-column hero design
+// Public landing page — Obsidian Wave dark/light design
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import api, { saveSession } from '../api';
 
 const FEATURES = [
-  { title: 'Any Audio Format', desc: 'Upload MP3, WAV, M4A, OGG, FLAC, or WebM. Format conversion is automatic.' },
+  { title: 'Any Audio Format',     desc: 'Upload MP3, WAV, M4A, OGG, FLAC, or WebM. Format conversion is automatic.' },
   { title: 'Multilingual Support', desc: 'Native support for Kannada, Hindi, and English — including code-switched lectures.' },
-  { title: 'Parallel Processing', desc: 'Audio is split into chunks and transcribed in parallel — results in minutes.' },
-  { title: 'Smart Cleaning', desc: 'Removes filler words, duplicates, background noise, and transcription artifacts.' },
-  { title: 'Structured Notes', desc: 'T5 AI model organizes your transcript into key points, sections, and a summary.' },
-  { title: 'Export Anywhere', desc: 'Download your notes as TXT, DOCX (Word), or PDF.' },
+  { title: 'Parallel Processing',  desc: 'Audio is split into chunks and transcribed in parallel — results in minutes.' },
+  { title: 'Smart Cleaning',       desc: 'Removes filler words, duplicates, background noise, and transcription artifacts.' },
+  { title: 'Structured Notes',     desc: 'T5 AI model organizes your transcript into key points, sections, and a summary.' },
+  { title: 'Export Anywhere',      desc: 'Download your notes as TXT, DOCX (Word), or PDF.' },
 ];
 
 const HOW_IT_WORKS = [
@@ -24,61 +25,65 @@ const HOW_IT_WORKS = [
 
 const STATS = [
   { val: '90 min', label: 'Max audio length' },
-  { val: '3', label: 'Languages supported' },
-  { val: '12×', label: 'Parallel processing' },
-  { val: '3 formats', label: 'Export options' },
+  { val: '3',      label: 'Languages' },
+  { val: '12×',    label: 'Parallel speed' },
+  { val: '3',      label: 'Export formats' },
 ];
 
-// Mock notes app preview card
+// App mockup preview
 function AppMockup() {
   return (
     <div className="lv2-app-mockup">
-      {/* Browser-style bar */}
       <div className="lv2-mockup-bar">
         <div className="lv2-mockup-dot" style={{ background: '#FC5F57' }} />
         <div className="lv2-mockup-dot" style={{ background: '#FDBC2C' }} />
         <div className="lv2-mockup-dot" style={{ background: '#29CC42' }} />
-        <div style={{ marginLeft: 8, height: 20, flex: 1, background: '#fff', borderRadius: 4, border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
-          <span style={{ fontSize: '0.65rem', color: '#9CA3AF' }}>audionotes.ai/notes/42</span>
+        <div style={{ marginLeft: 8, height: 18, flex: 1, background: 'var(--bg-surface-3)', borderRadius: 4, display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
+          <span style={{ fontSize: '0.6rem', color: 'var(--text-subtle)', fontFamily: 'JetBrains Mono, monospace' }}>audionotes.ai/notes/42</span>
         </div>
       </div>
-      {/* App content */}
-      <div style={{ display: 'flex', height: 320 }}>
+      <div style={{ display: 'flex', height: 300 }}>
         {/* Mini sidebar */}
-        <div style={{ width: 120, borderRight: '1px solid #F3F4F6', padding: '0.75rem 0', background: '#FAFAFA' }}>
+        <div style={{ width: 110, borderRight: '1px solid var(--glass-border)', padding: '0.75rem 0', background: 'var(--bg-surface-2)' }}>
           {['Introduction', 'Key Concepts', 'Applications', 'Summary'].map((s, i) => (
             <div key={s} style={{
-              padding: '0.45rem 0.75rem', fontSize: '0.65rem', fontWeight: i === 0 ? 700 : 500,
-              color: i === 0 ? '#2563EB' : '#6B7280',
-              background: i === 0 ? '#EFF6FF' : 'transparent',
-              borderLeft: i === 0 ? '2px solid #2563EB' : '2px solid transparent',
+              padding: '0.45rem 0.75rem', fontSize: '0.63rem', fontWeight: i === 0 ? 700 : 500,
+              color: i === 0 ? 'var(--brand)' : 'var(--text-muted)',
+              background: i === 0 ? 'var(--brand-bg)' : 'transparent',
+              borderLeft: i === 0 ? '2px solid var(--brand)' : '2px solid transparent',
+              cursor: 'pointer',
             }}>{s}</div>
           ))}
         </div>
         {/* Mini content */}
-        <div className="lv2-mockup-body" style={{ flex: 1, overflow: 'hidden' }}>
-          <div style={{ fontSize: '0.6rem', color: '#9CA3AF', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Lecture Notes</div>
+        <div className="lv2-mockup-body" style={{ flex: 1, overflow: 'hidden', padding: '0.75rem 1rem' }}>
+          <div style={{ fontSize: '0.58rem', color: 'var(--text-subtle)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'JetBrains Mono, monospace' }}>Lecture Notes</div>
           <div className="lv2-mockup-title" style={{ fontSize: '0.8rem', marginBottom: 8 }}>Foundations of Machine Learning</div>
-          <div className="lv2-mockup-section" style={{ padding: '0.5rem 0.625rem', marginBottom: 8 }}>
-            Executive Summary
+          <div className="lv2-mockup-section" style={{ padding: '0.4rem 0.6rem', marginBottom: 8, fontSize: '0.62rem' }}>
+            Overview
           </div>
           <div className="lv2-mockup-line" style={{ width: '100%' }} />
           <div className="lv2-mockup-line" style={{ width: '85%' }} />
           <div className="lv2-mockup-line" style={{ width: '92%' }} />
           <div style={{ marginTop: 12, display: 'flex', gap: 6 }}>
-            <div style={{ background: '#EFF6FF', borderRadius: 4, padding: '0.35rem 0.5rem', fontSize: '0.6rem', color: '#2563EB', fontWeight: 600 }}>Key Concepts</div>
-            <div style={{ background: '#F0FDF4', borderRadius: 4, padding: '0.35rem 0.5rem', fontSize: '0.6rem', color: '#059669', fontWeight: 600 }}>Applications</div>
+            <div style={{ background: 'var(--brand-bg)', borderRadius: 4, padding: '0.3rem 0.5rem', fontSize: '0.58rem', color: 'var(--brand)', fontWeight: 600, border: '1px solid var(--brand-border)' }}>Key Concepts</div>
+            <div style={{ background: 'var(--success-bg)', borderRadius: 4, padding: '0.3rem 0.5rem', fontSize: '0.58rem', color: 'var(--success)', fontWeight: 600, border: '1px solid var(--success-border)' }}>Applications</div>
           </div>
           <div className="lv2-mockup-line" style={{ marginTop: 10, width: '78%' }} />
           <div className="lv2-mockup-line" style={{ width: '90%' }} />
         </div>
       </div>
-      {/* Footer bar */}
-      <div style={{ borderTop: '1px solid #F3F4F6', padding: '0.625rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FAFAFA' }}>
-        <span style={{ fontSize: '0.65rem', color: '#9CA3AF' }}>Notes ready</span>
+      {/* Footer */}
+      <div style={{ borderTop: '1px solid var(--glass-border)', padding: '0.625rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-surface-2)' }}>
+        <span style={{ fontSize: '0.62rem', color: 'var(--text-subtle)', fontFamily: 'JetBrains Mono, monospace' }}>Notes ready ✓</span>
         <div style={{ display: 'flex', gap: 6 }}>
           {['TXT', 'DOCX', 'PDF'].map(f => (
-            <div key={f} style={{ background: f === 'PDF' ? '#2563EB' : '#F3F4F6', color: f === 'PDF' ? '#fff' : '#374151', padding: '0.2rem 0.5rem', borderRadius: 4, fontSize: '0.6rem', fontWeight: 700 }}>{f}</div>
+            <div key={f} style={{
+              background: f === 'PDF' ? 'var(--gradient-primary)' : 'var(--bg-muted)',
+              color: f === 'PDF' ? '#fff' : 'var(--text-muted)',
+              padding: '0.2rem 0.5rem', borderRadius: 4, fontSize: '0.6rem', fontWeight: 700,
+              border: '1px solid var(--glass-border)',
+            }}>{f}</div>
           ))}
         </div>
       </div>
@@ -86,9 +91,7 @@ function AppMockup() {
   );
 }
 
-// ── Google OAuth helper (ID token flow via GIS) ─────────────────
-// Uses accounts.id (returns JWT ID token) – NOT oauth2 (access token).
-// Backend verifies the ID token with google-auth library.
+// Google OAuth helper (ID token flow via GIS)
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 function loadGIS() {
@@ -107,16 +110,13 @@ function loadGIS() {
 
 function GoogleBtn({ label, onToken }) {
   const btnRef = React.useRef(null);
-
   React.useEffect(() => {
     if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID') return;
     loadGIS().then(() => {
       if (!btnRef.current) return;
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
-        callback: (resp) => {
-          if (resp?.credential) onToken(resp.credential);
-        },
+        callback: (resp) => { if (resp?.credential) onToken(resp.credential); },
         auto_select: false,
       });
       window.google.accounts.id.renderButton(btnRef.current, {
@@ -127,13 +127,11 @@ function GoogleBtn({ label, onToken }) {
       });
     });
   }, []);
-
   if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID') return null;
-
   return <div ref={btnRef} style={{ width: '100%', minHeight: 44, marginBottom: '1rem' }} />;
 }
 
-// ── Inline Login Modal ────────────────────────────────────────
+// Inline Login Modal
 function LoginModal({ onClose, onSwitchToRegister }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -171,51 +169,153 @@ function LoginModal({ onClose, onSwitchToRegister }) {
       const res = await api.post('/auth/google', { credential });
       saveSession({ access_token: res.data.access_token, user: res.data.user });
       onClose(); navigate('/dashboard', { replace: true });
-    } catch (err) {
-      alert(err.response?.data?.detail || 'Google sign-in failed. Please try again.');
-    }
+    } catch (err) { alert(err.response?.data?.detail || 'Google sign-in failed.'); }
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={onClose}>
-      <div style={{ background: '#fff', borderRadius: 20, padding: '2.5rem 2rem', width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', position: 'relative' }} onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#9CA3AF' }}>✕</button>
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg,#D97706,#F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem' }}></div>
-          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Sign In</h2>
-          <p style={{ margin: '0.25rem 0 0', color: '#6B7280', fontSize: '0.875rem' }}>{step === 1 ? 'Welcome back to AudioNotes AI' : 'Enter the code sent to your email'}</p>
+    // Backdrop — only blur here, NOT on the card
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0,0,0,0.65)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+      }}
+      onClick={onClose}
+    >
+      {/* Card — solid bg, NO backdrop-filter so inputs are fully interactive */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 420,
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--glass-border)',
+          borderRadius: 'var(--radius-2xl)',
+          boxShadow: 'var(--shadow-lg)',
+          padding: '2.5rem 2.25rem',
+          position: 'relative',
+          animation: 'modalSlideUp 0.22s ease-out',
+        }}
+      >
+        <style>{`@keyframes modalSlideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+
+        {/* Close */}
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute', top: 16, right: 16,
+            background: 'var(--bg-muted)', border: '1px solid var(--border)',
+            borderRadius: 8, width: 32, height: 32, cursor: 'pointer',
+            color: 'var(--text-muted)', fontSize: '0.9rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >✕</button>
+
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+          <div style={{
+            width: 52, height: 52, borderRadius: 14,
+            background: 'var(--gradient-primary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 0.875rem',
+            fontSize: '1rem', fontWeight: 900, color: '#fff',
+            letterSpacing: '-0.03em', fontFamily: 'Geist, sans-serif',
+            boxShadow: 'var(--glow-primary)',
+          }}>AN</div>
+          <h2 style={{
+            fontSize: '1.5rem', fontWeight: 800,
+            fontFamily: 'Geist, sans-serif', letterSpacing: '-0.025em',
+            color: 'var(--text-primary)', margin: '0 0 0.25rem',
+          }}>
+            {step === 1 ? 'Sign In' : 'Verify Email'}
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
+            {step === 1 ? 'Welcome back to AudioNotes AI' : `Enter the 6-digit code sent to ${email}`}
+          </p>
         </div>
+
+        {/* Google button — step 1 only */}
         {step === 1 && <GoogleBtn label="Continue with Google" onToken={handleGoogleToken} />}
-        {step === 1 && <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}><div style={{ flex: 1, height: 1, background: '#E5E7EB' }} /><span style={{ fontSize: '0.75rem', color: '#9CA3AF', whiteSpace: 'nowrap' }}>or sign in with email</span><div style={{ flex: 1, height: 1, background: '#E5E7EB' }} /></div>}
-        {err && <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: 8, padding: '0.625rem 0.875rem', fontSize: '0.875rem', marginBottom: '1rem' }}>{err}</div>}
-        {step === 1 ? (
+        {step === 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>or sign in with email</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          </div>
+        )}
+
+        {/* Error */}
+        {err && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{err}</div>}
+
+        {/* Step 1 — credentials */}
+        {step === 1 && (
           <form onSubmit={handleCredentials}>
-            <div style={{ marginBottom: '0.875rem' }}>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.375rem', color: '#374151' }}>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus placeholder="you@example.com"
-                style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+            <div className="form-group">
+              <label className="form-label">Email</label>
+              <input
+                type="email" value={email}
+                onChange={e => setEmail(e.target.value)}
+                required autoFocus placeholder="you@example.com"
+                className="form-input"
+              />
             </div>
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.375rem', color: '#374151' }}>Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••"
-                style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+            <div className="form-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.375rem' }}>
+                <label className="form-label" style={{ margin: 0 }}>Password</label>
+                <a
+                  href="/forgot-password"
+                  style={{
+                    fontSize: '0.8rem', color: 'var(--brand)',
+                    textDecoration: 'none', fontWeight: 600,
+                  }}
+                  onMouseOver={e => e.target.style.textDecoration = 'underline'}
+                  onMouseOut={e => e.target.style.textDecoration = 'none'}
+                >Forgot password?</a>
+              </div>
+              <input
+                type="password" value={password}
+                onChange={e => setPassword(e.target.value)}
+                required placeholder="••••••••"
+                className="form-input"
+              />
             </div>
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.8rem', background: '#2563EB', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer' }}>
-              {loading ? 'Checking…' : 'Continue'}
+            <button type="submit" disabled={loading} className="btn btn-primary btn-full btn-lg" style={{ marginTop: '0.5rem' }}>
+              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Checking…</> : 'Continue →'}
             </button>
-            <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.875rem', color: '#6B7280' }}>No account? <button type="button" onClick={onSwitchToRegister} style={{ background: 'none', border: 'none', color: '#D97706', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}>Register free</button></p>
+            <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              No account?{' '}
+              <button type="button" onClick={onSwitchToRegister} style={{ background: 'none', border: 'none', color: 'var(--brand)', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}>Register free</button>
+            </p>
           </form>
-        ) : (
+        )}
+
+        {/* Step 2 — OTP */}
+        {step === 2 && (
           <form onSubmit={handleOtp}>
-            <p style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '1rem' }}>We sent a 6-digit code to <strong>{email}</strong></p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem', textAlign: 'center' }}>
+              We sent a 6-digit code to <strong style={{ color: 'var(--brand)' }}>{email}</strong>
+            </p>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.25rem' }}>
-              {otp.map((d, i) => <input key={i} type="text" inputMode="numeric" maxLength={1} value={d}
-                onChange={e => { const n = [...otp]; n[i] = e.target.value.replace(/\D/, ''); setOtp(n); if (e.target.value && i < 5) e.target.nextSibling?.focus(); }}
-                style={{ width: '2.75rem', height: '3rem', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, border: '2px solid #D1D5DB', borderRadius: 8, outline: 'none' }} />)}
+              {otp.map((d, i) => (
+                <input
+                  key={i} type="text" inputMode="numeric" maxLength={1} value={d}
+                  onChange={e => {
+                    const n = [...otp]; n[i] = e.target.value.replace(/\D/, ''); setOtp(n);
+                    if (e.target.value && i < 5) e.target.nextSibling?.focus();
+                  }}
+                  className="form-input"
+                  style={{ width: '2.75rem', height: '3rem', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, padding: 0, fontFamily: 'JetBrains Mono, monospace' }}
+                />
+              ))}
             </div>
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.8rem', background: '#2563EB', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer' }}>
-              {loading ? 'Verifying…' : 'Verify & Sign In'}
+            <button type="submit" disabled={loading} className="btn btn-primary btn-full btn-lg">
+              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Verifying…</> : 'Verify & Sign In'}
             </button>
+            <p style={{ textAlign: 'center', marginTop: '0.875rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: 'var(--brand)', cursor: 'pointer', fontSize: '0.8rem' }}>Back to Sign In</button>
+            </p>
           </form>
         )}
       </div>
@@ -223,7 +323,7 @@ function LoginModal({ onClose, onSwitchToRegister }) {
   );
 }
 
-// ── Inline Register Modal ─────────────────────────────────────
+// Inline Register Modal
 function RegisterModal({ onClose, onSwitchToLogin }) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -258,55 +358,149 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
       const res = await api.post('/auth/google', { credential });
       saveSession({ access_token: res.data.access_token, user: res.data.user });
       onClose(); navigate('/dashboard', { replace: true });
-    } catch (err) {
-      alert(err.response?.data?.detail || 'Google sign-up failed. Please try again.');
-    }
+    } catch (err) { alert(err.response?.data?.detail || 'Google sign-up failed.'); }
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={onClose}>
-      <div style={{ background: '#fff', borderRadius: 20, padding: '2.5rem 2rem', width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', position: 'relative' }} onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#9CA3AF' }}>✕</button>
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg,#D97706,#F59E0B)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem' }}></div>
-          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{step === 1 ? 'Create Account' : 'Verify Email'}</h2>
-          <p style={{ margin: '0.25rem 0 0', color: '#6B7280', fontSize: '0.875rem' }}>{step === 1 ? 'Start turning lectures into notes' : `Code sent to ${email}`}</p>
+    // Backdrop — only blur here, NOT on the card
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0,0,0,0.65)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+      }}
+      onClick={onClose}
+    >
+      {/* Card — solid bg, NO backdrop-filter so inputs are fully interactive */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 440,
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--glass-border)',
+          borderRadius: 'var(--radius-2xl)',
+          boxShadow: 'var(--shadow-lg)',
+          padding: '2.5rem 2.25rem',
+          position: 'relative',
+          animation: 'modalSlideUp 0.22s ease-out',
+        }}
+      >
+        {/* Close */}
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute', top: 16, right: 16,
+            background: 'var(--bg-muted)', border: '1px solid var(--border)',
+            borderRadius: 8, width: 32, height: 32, cursor: 'pointer',
+            color: 'var(--text-muted)', fontSize: '0.9rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >✕</button>
+
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+          <div style={{
+            width: 52, height: 52, borderRadius: 14,
+            background: 'var(--gradient-primary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 0.875rem',
+            fontSize: '1rem', fontWeight: 900, color: '#fff',
+            letterSpacing: '-0.03em', fontFamily: 'Geist, sans-serif',
+            boxShadow: 'var(--glow-primary)',
+          }}>AN</div>
+          <h2 style={{
+            fontSize: '1.5rem', fontWeight: 800,
+            fontFamily: 'Geist, sans-serif', letterSpacing: '-0.025em',
+            color: 'var(--text-primary)', margin: '0 0 0.25rem',
+          }}>
+            {step === 1 ? 'Create Account' : 'Verify Email'}
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
+            {step === 1 ? 'Start turning lectures into structured notes' : `Check your inbox — code sent to ${email}`}
+          </p>
         </div>
+
+        {/* Google button — step 1 only */}
         {step === 1 && <GoogleBtn label="Sign up with Google" onToken={handleGoogleToken} />}
-        {step === 1 && <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}><div style={{ flex: 1, height: 1, background: '#E5E7EB' }} /><span style={{ fontSize: '0.75rem', color: '#9CA3AF', whiteSpace: 'nowrap' }}>or register with email</span><div style={{ flex: 1, height: 1, background: '#E5E7EB' }} /></div>}
-        {err && <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: 8, padding: '0.625rem 0.875rem', fontSize: '0.875rem', marginBottom: '1rem' }}>{err}</div>}
-        {step === 1 ? (
+        {step === 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>or register with email</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          </div>
+        )}
+
+        {/* Error */}
+        {err && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{err}</div>}
+
+        {/* Step 1 — registration form */}
+        {step === 1 && (
           <form onSubmit={handleRegister}>
-            <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.375rem', color: '#374151' }}>Full Name</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} required autoFocus placeholder="Udaya Kumar"
-                style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+            <div className="form-group">
+              <label className="form-label">Full Name</label>
+              <input
+                type="text" value={name}
+                onChange={e => setName(e.target.value)}
+                required autoFocus placeholder="Udaya Kumar"
+                className="form-input"
+              />
             </div>
-            <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.375rem', color: '#374151' }}>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com"
-                style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+            <div className="form-group">
+              <label className="form-label">Email</label>
+              <input
+                type="email" value={email}
+                onChange={e => setEmail(e.target.value)}
+                required placeholder="you@example.com"
+                className="form-input"
+              />
             </div>
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.375rem', color: '#374151' }}>Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="At least 8 characters"
-                style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <input
+                type="password" value={password}
+                onChange={e => setPassword(e.target.value)}
+                required placeholder="At least 8 characters"
+                className="form-input"
+              />
             </div>
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.8rem', background: '#2563EB', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer' }}>
-              {loading ? 'Creating…' : 'Create Account'}
+            <button type="submit" disabled={loading} className="btn btn-primary btn-full btn-lg" style={{ marginTop: '0.5rem' }}>
+              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Creating…</> : 'Create Account →'}
             </button>
-            <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.875rem', color: '#6B7280' }}>Have an account? <button type="button" onClick={onSwitchToLogin} style={{ background: 'none', border: 'none', color: '#D97706', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}>Sign in</button></p>
+            <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              Have an account?{' '}
+              <button type="button" onClick={onSwitchToLogin} style={{ background: 'none', border: 'none', color: 'var(--brand)', fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}>Sign in</button>
+            </p>
           </form>
-        ) : (
+        )}
+
+        {/* Step 2 — OTP */}
+        {step === 2 && (
           <form onSubmit={handleOtp}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem', textAlign: 'center' }}>
+              We sent a 6-digit code to <strong style={{ color: 'var(--brand)' }}>{email}</strong>
+            </p>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.25rem' }}>
-              {otp.map((d, i) => <input key={i} type="text" inputMode="numeric" maxLength={1} value={d}
-                onChange={e => { const n = [...otp]; n[i] = e.target.value.replace(/\D/, ''); setOtp(n); if (e.target.value && i < 5) e.target.nextSibling?.focus(); }}
-                style={{ width: '2.75rem', height: '3rem', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, border: '2px solid #D1D5DB', borderRadius: 8, outline: 'none' }} />)}
+              {otp.map((d, i) => (
+                <input
+                  key={i} type="text" inputMode="numeric" maxLength={1} value={d}
+                  onChange={e => {
+                    const n = [...otp]; n[i] = e.target.value.replace(/\D/, ''); setOtp(n);
+                    if (e.target.value && i < 5) e.target.nextSibling?.focus();
+                  }}
+                  className="form-input"
+                  style={{ width: '2.75rem', height: '3rem', textAlign: 'center', fontSize: '1.4rem', fontWeight: 700, padding: 0, fontFamily: 'JetBrains Mono, monospace' }}
+                />
+              ))}
             </div>
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.8rem', background: '#2563EB', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer' }}>
-              {loading ? 'Verifying…' : 'Verify & Sign In'}
+            <button type="submit" disabled={loading} className="btn btn-primary btn-full btn-lg">
+              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Verifying…</> : 'Verify & Activate Account'}
             </button>
+            <p style={{ textAlign: 'center', marginTop: '0.875rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: 'var(--brand)', cursor: 'pointer', fontSize: '0.8rem' }}>Back to Register</button>
+            </p>
           </form>
         )}
       </div>
@@ -316,15 +510,23 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
 
 export default function Landing() {
   const isLoggedIn = !!localStorage.getItem('token');
+  const { theme, toggleTheme } = useTheme();
   const [modal, setModal] = useState(null); // null | 'login' | 'register'
 
   return (
     <div className="landing-v2">
-      {/* ── Navbar ─────────────────────────────────────────── */}
+      {/* Ambient blobs */}
+      <div className="lv2-blob lv2-blob-1" />
+      <div className="lv2-blob lv2-blob-2" />
+      <div className="lv2-blob lv2-blob-3" />
+
+      {/* ── Navbar ── */}
       <nav className="lv2-nav">
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
-          <span style={{ fontWeight: 800, fontSize: '1.0625rem', color: '#111827', letterSpacing: '-0.02em' }}>AudioNotes AI</span>
+          <div style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 900, color: '#fff', boxShadow: 'var(--glow-sm)', fontFamily: 'Geist, sans-serif', letterSpacing: '-0.02em' }}>AN</div>
+          <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            AudioNotes <span style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>AI</span>
+          </span>
         </Link>
 
         <div className="lv2-nav-links">
@@ -334,18 +536,27 @@ export default function Landing() {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {/* Theme toggle */}
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode'}
+          >
+            {theme === 'dark' ? 'Light' : 'Dark'}
+          </button>
+
           {isLoggedIn ? (
-            <Link to="/dashboard" className="lv2-btn-primary">Go to Dashboard</Link>
+            <Link to="/dashboard" className="lv2-btn-primary">Go to Dashboard →</Link>
           ) : (
             <>
-              <button onClick={() => setModal('login')} className="lv2-btn-ghost" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', cursor: 'pointer' }}>Sign In</button>
-              <button onClick={() => setModal('register')} className="lv2-btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', cursor: 'pointer' }}>Get Started</button>
+              <button onClick={() => setModal('login')} className="lv2-btn-ghost">Sign In</button>
+              <button onClick={() => setModal('register')} className="lv2-btn-primary">Get Started →</button>
             </>
           )}
         </div>
       </nav>
 
-      {/* ── Hero ────────────────────────────────────────────── */}
+      {/* ── Hero ── */}
       <section className="lv2-hero">
         <div className="lv2-hero-left">
           <div className="lv2-tag">
@@ -365,9 +576,9 @@ export default function Landing() {
 
           <div className="lv2-cta-row">
             {isLoggedIn ? (
-              <Link to="/upload" className="lv2-btn-primary">Upload Lecture Audio Now</Link>
+              <Link to="/upload" className="lv2-btn-primary" style={{ fontSize: '1rem', padding: '0.75rem 1.75rem' }}>Upload Lecture Audio Now</Link>
             ) : (
-              <button onClick={() => setModal('register')} className="lv2-btn-primary" style={{ cursor: 'pointer' }}>Upload Lecture Audio Now</button>
+              <button onClick={() => setModal('register')} className="lv2-btn-primary" style={{ fontSize: '1rem', padding: '0.75rem 1.75rem', cursor: 'pointer' }}>Get Started Free →</button>
             )}
             {isLoggedIn ? (
               <Link to="/dashboard" className="lv2-btn-ghost">View Dashboard</Link>
@@ -376,17 +587,17 @@ export default function Landing() {
             )}
           </div>
 
-          {/* Trust row */}
+          {/* Social proof */}
           <div className="lv2-trust">
             <div className="lv2-avatars">
               {['U', 'A', 'R', 'K'].map((i, idx) => (
                 <div key={idx} className="lv2-avatar"
-                  style={{ background: ['linear-gradient(135deg,#2563EB,#60A5FA)', 'linear-gradient(135deg,#7C3AED,#A78BFA)', 'linear-gradient(135deg,#059669,#34D399)', 'linear-gradient(135deg,#D97706,#FBBF24)'][idx] }}>
+                  style={{ background: ['linear-gradient(135deg,#6366f1,#818cf8)', 'linear-gradient(135deg,#a855f7,#c084fc)', 'linear-gradient(135deg,#059669,#34d399)', 'linear-gradient(135deg,#d97706,#fbbf24)'][idx] }}>
                   {i}
                 </div>
               ))}
             </div>
-            <span><strong style={{ color: '#111827' }}>5,000+ students</strong> using AudioNotes AI</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}><strong style={{ color: 'var(--text-primary)' }}>5,000+ students</strong> using AudioNotes AI</span>
           </div>
         </div>
 
@@ -394,7 +605,7 @@ export default function Landing() {
         <AppMockup />
       </section>
 
-      {/* ── Stats row ───────────────────────────────────────── */}
+      {/* ── Stats bar ── */}
       <div className="lv2-stats">
         {STATS.map(s => (
           <div key={s.val} className="lv2-stat">
@@ -404,31 +615,28 @@ export default function Landing() {
         ))}
       </div>
 
-      {/* ── How It Works ─────────────────────────────────────── */}
-      <section id="how-it-works" style={{ background: '#F8FAFC', padding: '4rem 0' }}>
+      {/* ── How It Works ── */}
+      <section id="how-it-works" style={{ padding: '5rem 0', position: 'relative', zIndex: 1 }}>
         <div className="container">
           <div className="section-header">
             <div className="section-tag">How It Works</div>
             <h2>Six steps from audio to organized notes</h2>
-            <p style={{ maxWidth: 500, margin: '0 auto' }}>
-              Our pipeline processes every second of your lecture through
-              a state-of-the-art AI stack — automatically.
-            </p>
+            <p>Our pipeline processes every second of your lecture through a state-of-the-art AI stack — automatically.</p>
           </div>
           <div className="how-it-works">
             {HOW_IT_WORKS.map((step) => (
               <div key={step.num} className="step-card">
                 <div className="step-card-num">STEP {step.num}</div>
                 <h4>{step.title}</h4>
-                <p style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>{step.desc}</p>
+                <p>{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Features ─────────────────────────────────────────── */}
-      <section id="features" style={{ background: '#fff', padding: '4rem 0' }}>
+      {/* ── Features ── */}
+      <section id="features" style={{ padding: '4rem 0', position: 'relative', zIndex: 1 }}>
         <div className="container">
           <div className="section-header">
             <div className="section-tag">Features</div>
@@ -437,52 +645,42 @@ export default function Landing() {
           <div className="features-grid">
             {FEATURES.map((f) => (
               <div key={f.title} className="feature-card">
-                <h4 style={{ marginBottom: '0.375rem' }}>{f.title}</h4>
-                <p style={{ fontSize: '0.875rem' }}>{f.desc}</p>
+                <h4>{f.title}</h4>
+                <p>{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CTA Banner ───────────────────────────────────────── */}
-      <section style={{ background: '#2563EB', padding: '3.5rem 0', textAlign: 'center' }}>
+      {/* ── CTA Banner ── */}
+      <section className="lv2-cta-section">
         <div className="container">
-          <h2 style={{ color: 'white', marginBottom: '0.75rem' }}>
-            Ready to stop missing lecture details?
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '1.75rem', maxWidth: 460, margin: '0 auto 1.75rem' }}>
-            Create a free account and upload your first lecture in under 2 minutes.
-          </p>
-          <Link
-            to={isLoggedIn ? '/upload' : '/register'}
-            style={{
-              display: 'inline-block', padding: '0.875rem 2.25rem',
-              background: 'white', color: '#1D4ED8', fontWeight: 700,
-              fontSize: '1rem', borderRadius: 8, textDecoration: 'none',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            }}
-          >
-            {isLoggedIn ? 'Upload a Lecture' : 'Create Free Account'}
-          </Link>
+          <h2>Ready to stop missing lecture details?</h2>
+          <p>Create a free account and upload your first lecture in under 2 minutes.</p>
+          {isLoggedIn ? (
+            <Link to="/upload" className="lv2-cta-btn-white">Upload a Lecture</Link>
+          ) : (
+            <button onClick={() => setModal('register')} className="lv2-cta-btn-white" style={{ cursor: 'pointer' }}>
+              Create Free Account →
+            </button>
+          )}
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────── */}
-      <footer style={{ background: '#fff', borderTop: '1px solid #E5E7EB', padding: '2rem 0' }}>
-        <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div style={{ width: 28, height: 28, borderRadius: 6, background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
-              <span style={{ fontWeight: 700, color: '#111827', fontSize: '0.9375rem' }}>AudioNotes AI</span>
-            </div>
-            <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textAlign: 'center' }}>
-              Built by Udaya Kumar · Models: Whisper + T5 on HuggingFace
-            </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={() => setModal('login')} style={{ fontSize: '0.8125rem', color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer' }}>Sign In</button>
-              <button onClick={() => setModal('register')} style={{ fontSize: '0.8125rem', color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer' }}>Register</button>
-            </div>
+      {/* ── Footer ── */}
+      <footer className="lv2-footer">
+        <div className="lv2-footer-inner">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 900, color: '#fff', fontFamily: 'Geist, sans-serif', letterSpacing: '-0.02em' }}>AN</div>
+            <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9375rem' }}>AudioNotes AI</span>
+          </div>
+          <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+            Built by Udaya Kumar · Models: Whisper + T5 on HuggingFace
+          </div>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button onClick={() => setModal('login')} style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Sign In</button>
+            <button onClick={() => setModal('register')} style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Register</button>
           </div>
         </div>
       </footer>

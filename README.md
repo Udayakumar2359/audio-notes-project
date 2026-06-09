@@ -1,59 +1,132 @@
 # 🎙️ AudioNotes AI — Multilingual Lecture Audio to Structured Notes
 
-**Student:** Udaya Kumar | **USN:** P02ME24S126024
-**Institution:** JSS SMC MCA Institute, Dharwad
-**Version:** 2.0.0
-**Tech Stack:** Python · FastAPI · PyTorch (CUDA) · HuggingFace · React · Vite · SQLite / PostgreSQL
+**Student:** Udaya Kumar | **USN:** P02ME24S126024  
+**Institution:** JSS SMC MCA Institute, Dharwad  
+**Version:** 3.0.0  
+**Tech Stack:** Python · FastAPI · PyTorch (CUDA) · HuggingFace · Qwen2.5-7B · Ollama · React · Vite · SQLite / PostgreSQL
 
 ---
 
 ## 📌 Project Overview
 
-**AudioNotes AI** is an end-to-end AI system that converts multilingual classroom audio (Kannada / Hindi / English) into well-structured academic notes. Students upload a lecture recording and the system automatically transcribes and summarizes it. Users can then translate the generated summary into their preferred language (Kannada/Hindi) using state-of-the-art Indic NMT models, and interact with an AI Study Agent to answer follow-up questions.
+**AudioNotes AI** is an end-to-end AI system that converts multilingual classroom audio (Kannada / Hindi / English) into well-structured, exam-ready academic notes. Students upload a lecture recording — or paste a YouTube URL — and the system automatically:
+
+1. Splits and transcribes the audio using a **fine-tuned Whisper model**
+2. Cleans, reconstructs, and summarises the transcript via a **4-stage Qwen2.5-7B NLP pipeline**
+3. Generates structured notes with title, overview, sections, key concepts, and glossary
+4. Lets students **translate** the notes to Hindi / Kannada via IndicTrans2
+5. Enables **AI Study Agent** Q&A (powered by a local Ollama LLM) over the full transcript
+6. Exports notes as **TXT / DOCX / PDF** and supports **study group sharing**
 
 ---
 
 ## 🚀 Full Pipeline
 
 | Step | Module | What it does |
-|------|--------|-------------|
-| 1 | `audio_processor.py` | Splits audio into 25-second chunks + removes background noise |
-| 2 | `transcriber.py` | Whisper ASR (fine-tuned on Kathbath) + per-chunk language detection |
-| 3 | `cleaner.py` | Post-processes and deduplicates raw transcription text |
-| 4 | `note_structurer.py` | Qwen-0.5B (4-bit quantization) generates structured academic notes |
-| 5 | `translator.py` | Translates the generated summary (En → Kn/Hi) via `ai4bharat/indictrans2-en-indic-1B` |
-| 6 | `credibility.py` | Faithfulness scoring of notes vs. transcript (ROUGE/T5 score + agent groundedness) |
-| 7 | `exporter.py` | Exports notes to `.txt`, `.docx`, or `.pdf` |
-| 8 | `agent.py` | Groq-powered AI Study Agent for Q&A over the transcript |
-| 9 | `pipeline.py` | Orchestrates all steps end-to-end as a background job |
+|------|--------|--------------|
+| 1 | `audio_processor.py` | Splits audio into 25-second chunks + noise reduction |
+| 2 | `transcriber.py` | Whisper ASR (fine-tuned on Kathbath Kn+Hi+En) + language detection per chunk |
+| 3 | `cleaner.py` | Deduplication and post-processing of raw ASR text |
+| 4 | `nlp_agent.py` — Stage 1 | **Transcript Cleaner** — removes fillers, fixes grammar, adds punctuation |
+| 5 | `nlp_agent.py` — Stage 2 | **Context Reconstructor** — expands fragments into coherent paragraphs |
+| 6 | `nlp_agent.py` — Stage 3 | **Topic Extractor** — extracts main topic, subtopics, keywords as JSON |
+| 7 | `nlp_agent.py` — Stage 4 | **Hierarchical Summariser** — chunk summaries → final structured notes |
+| 8 | `translator.py` | Translates notes (En → Kn/Hi) via `Helsinki-NLP/opus-mt-mul-en` |
+| 9 | `credibility.py` | Faithfulness scoring (ROUGE/T5) + agent groundedness checks |
+| 10 | `exporter.py` | Exports notes to `.txt`, `.docx`, or `.pdf` |
+| 11 | `agent.py` | Local Ollama AI Study Agent — Q&A and note generation over the transcript |
+| 12 | `pipeline.py` | Orchestrates all steps as a cancellable background job |
+
+---
+
+## 🧠 NLP Agent — 4-Stage Qwen2.5-7B Pipeline
+
+The core intelligence of AudioNotes AI is a **sequential 4-stage pipeline** running locally on `Qwen2.5-7B-Instruct` via Ollama. It is designed to handle long transcripts (15,000–20,000 words from 90–120 min lectures).
+
+### Chunking Strategy
+- Long transcripts are split at **sentence boundaries** into ~1,100-word chunks with 80-word overlaps
+- Each stage processes chunks in **parallel** (configurable workers via `NLP_MAX_WORKERS`)
+
+### Stage 1 — Transcript Cleaner
+Removes ASR fillers (um, uh, you know…), fixes grammar, adds punctuation, and fixes capitalisation — without adding any new information.
+
+### Stage 2 — Context Reconstructor
+Expands fragmented STT sentences into full, coherent educational paragraphs, restoring implied context across audio gaps.
+
+### Stage 3 — Topic Extractor
+Analyses a representative 3,000-word sample to extract `main_topic`, `subtopics`, and `keywords` as strict JSON.
+
+### Stage 4 — Hierarchical Summariser
+- **Pass 1:** Each chunk is summarised into a dense 200–350 word intermediate summary (parallel)
+- **Pass 2:** All chunk summaries are merged → final structured notes via `FINAL_PROMPT`
+- If merged summaries exceed 8,000 words, an intermediate reduction pass runs automatically
+
+### Final Notes Output Format
+```
+# TITLE: [...]
+## MAIN TOPICS COVERED
+## DETAILED EXPLANATIONS
+## EXAMPLES AND APPLICATIONS
+## KEY TAKEAWAYS
+## GLOSSARY OF TERMS
+```
+
+---
+
+## 🤖 AI Study Agent — Download Notes Prompt
+
+The AI Study Agent (`/agent/{id}/download-notes`) generates comprehensive, exam-ready notes on demand using this prompt:
+
+```
+Generate comprehensive, exam-ready academic notes from the lecture transcript.
+
+LECTURE TITLE:        ← derived from content
+OVERVIEW:             ← 10–13 sentence summary
+
+### N. <Section Title>
+#### Explanation:     ← minimum 15–20 sentences in academic language
+#### Key Points:      ← bullet points with explanations
+#### Steps / Working: ← only for processes or algorithms
+
+CRITICAL RULES:
+- Cover ALL major ideas — do not skip topics
+- Minimum 200–250 words per section
+- Every section MUST have an Explanation paragraph
+- Begin response IMMEDIATELY with: LECTURE TITLE:
+```
 
 ---
 
 ## 🏗️ Project Structure
 
 ```
-audio_notes_project/
+audio_notes_project-1/
 ├── .env                             ← Runtime config (SMTP, DB, model IDs, etc.)
 ├── .gitignore
 ├── Procfile                         ← Deployment config (Render / Heroku)
 ├── runtime.txt                      ← Python version pin
 ├── requirements.txt                 ← All Python dependencies
-├── start_servers.bat                ← One-click startup script for backend + frontend
+├── start_servers.bat                ← One-click startup (backend + frontend)
 │
 ├── backend/
-│   ├── main.py                      ← FastAPI app v2.0 — all routes
-│   ├── database.py                  ← SQLAlchemy models (Users, Audio, Groups, Chat, etc.)
+│   ├── main.py                      ← FastAPI app — all routes (2,850+ lines)
+│   ├── database.py                  ← SQLAlchemy models (Users, Audio, Groups, Chat, Notes…)
 │   ├── auth.py                      ← Custom email+password auth + OTP via SMTP
 │   └── ml/
-│       ├── pipeline.py              ← End-to-end pipeline orchestrator
-│       ├── audio_processor.py       ← Audio chunking + noise reduction
-│       ├── transcriber.py           ← Whisper ASR + language detection
-│       ├── translator.py            ← IndicTrans2 translation (En -> Indic)
+│       ├── pipeline.py              ← End-to-end pipeline orchestrator (cancellable)
+│       ├── nlp_agent.py             ← 4-stage Qwen2.5-7B NLP pipeline (main AI brain)
+│       ├── qwen_generator.py        ← Qwen2.5-7B generation wrapper (via Ollama)
+│       ├── audio_processor.py       ← Audio chunking + noise reduction (pydub/librosa)
+│       ├── transcriber.py           ← Whisper ASR + per-chunk language detection
+│       ├── translator.py            ← Helsinki-NLP translation (En → Indic)
 │       ├── cleaner.py               ← Text cleanup + deduplication
-│       ├── note_structurer.py       ← Qwen-0.5B note generation (bitsandbytes 4-bit)
-│       ├── credibility.py           ← Faithfulness + groundedness scoring
+│       ├── polisher.py              ← Grammar polish pass on transcripts
+│       ├── note_structurer.py       ← Structured notes schema builder
+│       ├── credibility.py           ← T5 faithfulness + groundedness scoring
+│       ├── evaluator.py             ← Full pipeline evaluator
 │       ├── exporter.py              ← TXT / DOCX / PDF export
-│       └── agent.py                 ← Groq AI Study Agent (Q&A over transcript)
+│       ├── agent.py                 ← Ollama AI Study Agent (Q&A + note generation)
+│       └── model_registry.py        ← Thread-safe model loader/cache
 │
 ├── frontend/
 │   ├── index.html
@@ -62,45 +135,51 @@ audio_notes_project/
 │   ├── package.json
 │   └── src/
 │       ├── App.jsx                  ← React Router routes
-│       ├── api.js                   ← Axios API client (all endpoints)
+│       ├── api.js                   ← Axios API client
 │       ├── index.css                ← Global styles + design system
 │       ├── main.jsx
 │       ├── components/
 │       │   ├── Navbar.jsx           ← Responsive top navigation
-│       │   ├── AgentChatPanel.jsx   ← AI Study Agent chat UI
+│       │   ├── AgentChatPanel.jsx   ← AI Study Agent chat UI (SSE streaming)
 │       │   ├── CredibilityBadge.jsx ← Faithfulness score display
 │       │   └── SessionManager.jsx   ← Auth session handler
 │       └── pages/
+│           ├── Landing.jsx          ← Public landing page
+│           ├── Login.jsx            ← Login + OTP 2FA flow
+│           ├── Register.jsx         ← Registration + email verification
+│           ├── ForgotPassword.jsx   ← Password reset via OTP
 │           ├── Dashboard.jsx        ← All uploads + notes history
 │           ├── Upload.jsx           ← Audio upload + live pipeline progress
-│           ├── NotesViewer.jsx      ← View notes, transcripts, chat with AI agent
-│           └── ...
+│           ├── NotesViewer.jsx      ← Notes, Transcript, Translate, Edit, Share,
+│           │                            AI Chat, AI Summary, Download views
+│           ├── Groups.jsx           ← Study groups list
+│           ├── GroupDetail.jsx      ← Group notes + file sharing
+│           ├── SharedNote.jsx       ← Public shared notes viewer
+│           └── Profile.jsx          ← User profile + account settings
 │
+├── docs/reports/                    ← Monthly project reports
 ├── notebooks/                       ← Training & evaluation notebooks
-├── models/                          ← Downloaded trained models (not tracked in git)
-└── uploads/                         ← User audio files at runtime (not tracked in git)
+└── uploads/                         ← User audio files at runtime (git-ignored)
 ```
 
 ---
 
 ## 🔐 Authentication System
 
-A fully **self-hosted, custom authentication system** — no third-party providers.
+A fully **self-hosted, custom authentication system** — no third-party providers. Every login requires email + password **and** a fresh OTP — mandatory 2FA on every session.
 
-| Step | Endpoint | Description |
-|------|----------|-------------|
-| 1 | `POST /auth/register` | Sign up with name, email, password → sends 6-digit OTP |
-| 2 | `POST /auth/verify-otp` | Verify registration OTP → account activated + JWT issued |
-| 3 | `POST /auth/send-otp` | Resend registration OTP (if expired) |
-| 4 | `POST /auth/login` | Login with email + password → sends login OTP (2FA) |
-| 5 | `POST /auth/verify-login-otp` | Verify login OTP → JWT token returned |
-| 6 | `POST /auth/forgot-password` | Send password reset OTP (public, no login needed) |
-| 7 | `POST /auth/reset-forgotten-password` | OTP + new password → reset complete |
-| 8 | `POST /auth/send-password-change-otp` | Logged-in: send OTP to authorize password change |
-| 9 | `POST /auth/verify-password-change` | Verify OTP + set new password |
-| 10 | `GET /auth/me` | Get current user info |
-
-> Every login requires email + password **and** a fresh OTP — mandatory 2FA on every session.
+| Endpoint | Description |
+|----------|-------------|
+| `POST /auth/register` | Sign up → sends 6-digit OTP to email |
+| `POST /auth/verify-otp` | Verify OTP → account activated + JWT issued |
+| `POST /auth/send-otp` | Resend registration OTP |
+| `POST /auth/login` | Login → sends login OTP (2FA) |
+| `POST /auth/verify-login-otp` | Verify login OTP → JWT returned |
+| `POST /auth/forgot-password` | Send password reset OTP |
+| `POST /auth/reset-forgotten-password` | OTP + new password → reset complete |
+| `POST /auth/send-password-change-otp` | Logged-in: request password change OTP |
+| `POST /auth/verify-password-change` | Verify OTP → new password saved |
+| `GET /auth/me` | Get current user info |
 
 ---
 
@@ -110,21 +189,48 @@ A fully **self-hosted, custom authentication system** — no third-party provide
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/audio/upload` | Upload audio → background pipeline starts |
+| POST | `/audio/upload-youtube` | Paste YouTube URL → audio downloaded + pipeline starts |
 | GET | `/audio/{id}/status` | Poll processing status |
-| GET | `/audio/{id}/notes` | Get structured notes (JSON + text) |
-| POST | `/notes/{id}/translate` | Translate the generated summary to Kn/Hi via IndicTrans2 |
-| GET | `/audio/{id}/transcripts` | Get per-chunk transcriptions (lazy loaded) |
-| GET | `/audio/{id}/credibility` | Get T5 faithfulness + agent groundedness scores |
+| GET | `/audio/{id}/notes` | Get structured notes (JSON + markdown text) |
+| GET | `/audio/{id}/transcripts` | Per-chunk transcriptions (lazy loaded) |
+| GET | `/audio/{id}/polished-transcript` | Polished + raw transcript |
+| GET | `/audio/{id}/credibility` | T5 faithfulness + agent groundedness scores |
 | GET | `/audio/{id}/download?format=txt\|docx\|pdf` | Download notes in chosen format |
+| GET | `/audio/{id}/group-references` | Groups/links referencing this note |
+| PATCH | `/notes/{id}/edit` | Save edited notes text |
+| POST | `/notes/{id}/translate` | Translate summary to Kn/Hi (SSE stream) |
+| POST | `/notes/{id}/share` | Generate a public share link (with optional expiry) |
 | GET | `/user/uploads` | List all user uploads |
-| DELETE | `/audio/{id}` | Delete a recording |
+| DELETE | `/audio/{id}` | Delete recording + all associated data |
 
 ### AI Study Agent
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/audio/{id}/agent/chat` | Send message to AI agent (Groq-powered) |
-| GET | `/audio/{id}/agent/history` | Get full chat history |
-| DELETE | `/audio/{id}/agent/history` | Clear chat session |
+| POST | `/agent/{id}/init` | Pre-warm agent context (no LLM call) |
+| POST | `/agent/{id}/chat` | Send message → stream reply (SSE) |
+| POST | `/agent/{id}/generate-notes` | Generate detailed study notes (SSE stream) |
+| POST | `/agent/{id}/summarize?level=brief\|standard\|detailed` | Summarise at chosen depth (SSE) |
+| GET | `/agent/{id}/download-notes?format=docx\|pdf` | Download AI-generated notes as Word/PDF |
+| DELETE | `/agent/{id}/history` | Clear chat session |
+
+### Study Groups
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/groups` | Create a study group |
+| GET | `/groups` | List joined groups |
+| GET | `/groups/{id}` | Group details + members |
+| POST | `/groups/{id}/join` | Join a group |
+| POST | `/groups/{id}/notes` | Share a note into a group |
+| DELETE | `/groups/{id}/notes/{note_id}` | Remove a shared note |
+| GET | `/groups/{id}/files` | List uploaded group files |
+| POST | `/groups/{id}/files` | Upload a file to the group |
+| GET | `/groups/{id}/files/{file_id}/download` | Download a group file |
+
+### System
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check + loaded models status |
+| GET | `/shared/{token}` | View a publicly shared note |
 
 ---
 
@@ -135,9 +241,11 @@ A fully **self-hosted, custom authentication system** — no third-party provide
 | Python | 3.10+ | https://python.org/downloads | `python --version` |
 | Node.js | 18+ LTS | https://nodejs.org | `node --version` |
 | ffmpeg | latest | https://ffmpeg.org/download.html | `ffmpeg -version` |
+| Ollama | latest | https://ollama.com | `ollama --version` |
 | Git | latest | https://git-scm.com | `git --version` |
 
-> **GPU Acceleration (Highly Recommended):** This project requires PyTorch compiled with CUDA support (`torch==2.7.0+cu128`) and `bitsandbytes` for 4-bit quantization. Ensure you have an NVIDIA GPU (e.g., RTX 3050) with updated drivers.
+> **GPU Acceleration (Highly Recommended):** PyTorch with CUDA support (`torch==2.7.0+cu128`) for Whisper inference. An NVIDIA GPU (e.g., RTX 3050+) with updated drivers is strongly recommended.  
+> **Ollama:** Required for the Qwen2.5-7B NLP agent and the AI Study Agent. Must be running (`ollama serve`) before starting the backend.  
 > **Windows ffmpeg:** Extract zip → copy `bin/` path → add to **System → Environment Variables → PATH** → restart terminal.
 
 ---
@@ -148,25 +256,31 @@ A fully **self-hosted, custom authentication system** — no third-party provide
 
 ```bash
 git clone https://github.com/Udayakumar2359/audio-notes-project.git
-cd audio-notes-project
+cd audio-notes-project-1
 ```
 
-### 2. Create Python Virtual Environment (Windows)
+### 2. Pull the Qwen2.5-7B Model via Ollama
+
+```bash
+ollama pull qwen2.5:7b-instruct
+ollama serve
+```
+
+### 3. Create Python Virtual Environment (Windows)
 
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
-### 3. Install Dependencies (with CUDA Support)
+### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
-pip install bitsandbytes
 pip install torch==2.7.0+cu128 torchaudio==2.7.0+cu128 --index-url https://download.pytorch.org/whl/cu128
 ```
 
-### 4. Configure Environment Variables
+### 5. Configure Environment Variables
 
 Create a `.env` file in the project root:
 
@@ -188,12 +302,15 @@ FROM_EMAIL=your-email@gmail.com
 
 # ── HuggingFace Models ─────────────────────────────────────
 WHISPER_MODEL_ID=udayakumar8214/whisper-classroom-kn-hi-en
-TRANSLATION_MODEL=ai4bharat/indictrans2-en-indic-1B
+QWEN_MODEL_ID=Qwen/Qwen2.5-7B-Instruct
+TRANSLATION_MODEL=Helsinki-NLP/opus-mt-mul-en
 
-# ── AI Study Agent (Groq) ──────────────────────────────────
-GROQ_API_KEY=your-groq-api-key
+# ── Ollama ─────────────────────────────────────────────────
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=qwen2.5:7b-instruct
 
 # ── Performance Tuning ─────────────────────────────────────
+NLP_MAX_WORKERS=4
 PIPELINE_MAX_WORKERS=1
 
 # ── App ────────────────────────────────────────────────────
@@ -201,32 +318,37 @@ UPLOAD_DIR=uploads
 FRONTEND_URL=http://localhost:5173
 ```
 
-### 5. Start the Application
-
-The easiest way to start both the backend and frontend simultaneously is using the provided batch script:
+### 6. Start the Application
 
 ```bash
 .\start_servers.bat
 ```
-*(This opens two terminals automatically, sets `PYTHONUTF8=1`, and runs both servers with hot-reloading enabled).*
 
-✅ **http://localhost:8000/docs** — Swagger API docs
-✅ **http://localhost:5173** — AudioNotes AI web app
+*This opens two terminals — one for the FastAPI backend, one for the Vite frontend — both with hot-reload enabled.*
+
+| URL | Service |
+|-----|---------|
+| http://localhost:8000/docs | Swagger API docs |
+| http://localhost:5173 | AudioNotes AI web app |
 
 ---
 
 ## 🧪 Testing the App
 
-1. Go to **http://localhost:5173/register** → create an account
-2. Check your email for the **6-digit OTP** → verify it
-3. **Login** → enter password → receive and enter login OTP
-4. Click **Upload Audio** → upload any lecture recording
-5. Watch the live processing stages (chunking → transcription → summarization)
-6. Once done, view **Structured Notes** and **Transcript**
-7. Use the language dropdown in the Notes tab to translate the AI-generated summary to Kannada or Hindi using IndicTrans2
-8. Chat with the **AI Study Agent** to ask questions about the lecture
-9. **Download** notes as `.txt`, `.docx`, or `.pdf`
-10. **Share** notes or join a **Study Group** to collaborate
+1. Open **http://localhost:5173/register** → create an account
+2. Check your email for the **6-digit OTP** → verify to activate account
+3. **Login** → enter password → receive and enter the login OTP
+4. Click **Upload Audio** → upload a lecture recording (`.wav`, `.mp3`, `.m4a`, `.ogg`, `.flac`, `.webm`, `.aac`)  
+   *Or paste a YouTube URL to download and process automatically*
+5. Watch **live pipeline stages**: chunking → transcription → cleaning → reconstruction → topic extraction → summarisation
+6. View the **Structured Notes** with title, overview, sections, key concepts, and glossary
+7. Click **Transcript** to see the polished + raw transcript and per-chunk breakdown
+8. Click **Translate** to convert the transcript to Hindi or Kannada (via Helsinki-NLP)
+9. Click **AI Chat** to ask questions about the lecture (answered by the local Ollama agent)
+10. Click **AI Summary** to generate a brief / standard / detailed summary on demand
+11. Click **Download** → choose **TXT**, **DOCX**, or **PDF**
+12. Click **Share** to generate a public link (with optional expiry)
+13. Visit **Groups** to create/join a study group and share notes with classmates
 
 ---
 
@@ -236,14 +358,26 @@ The easiest way to start both the backend and frontend simultaneously is using t
 |-------|-----------|
 | **Backend** | FastAPI 0.111, Python 3.10, SQLAlchemy 2.0 |
 | **Database** | SQLite (dev) / PostgreSQL (prod via Supabase) |
-| **Auth** | Custom JWT + bcrypt + SMTP OTP (2FA) |
-| **ASR** | Whisper-Small/Medium (fine-tuned on Kathbath Kn+Hi) on GPU |
-| **Translation** | `ai4bharat/indictrans2-en-indic-1B` (En → Indic) |
-| **Note Gen** | Qwen-0.5B (4-bit quantized via `bitsandbytes`) on GPU |
-| **AI Agent** | Groq LLM API (Llama 3) |
+| **Auth** | Custom JWT + bcrypt + SMTP OTP (mandatory 2FA) |
+| **ASR** | `udayakumar8214/whisper-classroom-kn-hi-en` (fine-tuned Whisper on GPU) |
+| **NLP Agent** | `Qwen2.5-7B-Instruct` via Ollama — 4-stage pipeline |
+| **Translation** | `Helsinki-NLP/opus-mt-mul-en` (En → Kn/Hi) |
+| **AI Study Agent** | Local Ollama LLM — streaming Q&A + note generation |
+| **Credibility** | T5 faithfulness scoring + agent groundedness |
 | **Audio Processing** | pydub, librosa, noisereduce, soundfile |
 | **Export** | python-docx, reportlab (PDF) |
-| **Frontend** | React 18, Vite, Axios |
+| **Frontend** | React 18, Vite, Axios (vanilla CSS, no Tailwind) |
+
+---
+
+## 🗂️ Key Design Decisions
+
+- **Fully local AI stack** — Whisper + Qwen2.5-7B run entirely on your hardware via Ollama. No OpenAI API keys needed.
+- **Chunked parallel processing** — 1,100-word chunks with 80-word overlaps, processed in parallel threads (`ThreadPoolExecutor`) to handle 90+ min lectures without OOM.
+- **Hierarchical summarisation** — Two-pass approach (chunk summaries → global notes) ensures no content is lost from long lectures, with an automatic intermediate pass for very large merged summaries (>8,000 words).
+- **Pre-warmed agent** — After pipeline completes, the AI Study Agent is pre-initialised and cached so the first user chat has no cold-start delay.
+- **Cancellable jobs** — All in-flight pipeline jobs can be cancelled via a `CANCELLED_JOBS` set; deleting a recording stops any ongoing processing immediately.
+- **Mandatory 2FA** — Every login session requires both a password and a fresh OTP — no exceptions.
 
 ---
 

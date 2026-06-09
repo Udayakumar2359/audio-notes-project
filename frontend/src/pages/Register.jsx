@@ -4,12 +4,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api, { saveSession } from '../api'
+import { useTheme } from '../context/ThemeContext'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 
 export default function Register() {
   const navigate = useNavigate()
   const googleBtnRef = useRef(null)
+  const { theme, toggleTheme } = useTheme()
 
   const [name,      setName]      = useState('')
   const [email,     setEmail]     = useState('')
@@ -120,46 +122,61 @@ export default function Register() {
   }
 
   const StepBadge = ({ n, label, active }) => (
-    <div style={{ display:'flex', alignItems:'center', gap:'0.5rem' }}>
-      <div style={{ width:28, height:28, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:'0.8125rem', flexShrink:0, background: active ? 'var(--brand-amber)' : 'var(--border-subtle)', color: active ? '#fff' : 'var(--text-muted)', transition:'all 0.2s' }}>{n}</div>
-      <span style={{ fontSize:'0.8125rem', color: active ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: active ? 600 : 400 }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontWeight: 700, fontSize: '0.8125rem', flexShrink: 0,
+        background: active ? 'var(--gradient-primary)' : 'var(--bg-muted)',
+        color: active ? '#fff' : 'var(--text-muted)',
+        boxShadow: active ? 'var(--glow-sm)' : 'none',
+        transition: 'all 0.2s', fontFamily: 'JetBrains Mono, monospace',
+      }}>{n}</div>
+      <span style={{ fontSize: '0.8125rem', color: active ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: active ? 600 : 400 }}>{label}</span>
     </div>
   )
 
   return (
     <div className="auth-page page-enter">
-      <div className="auth-card">
+      {/* Theme toggle */}
+      <button
+        className="theme-toggle"
+        onClick={toggleTheme}
+        style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', zIndex: 10 }}
+        title="Toggle theme"
+      >
+        {theme === 'dark' ? '☀️' : '🌙'}
+      </button>
 
+      <div className="auth-card">
         <div className="auth-logo">
-          <div style={{ width:56, height:56, borderRadius:16, background:'linear-gradient(135deg,#D97706,#F59E0B)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.75rem', marginBottom:'0.75rem', boxShadow:'0 4px 16px rgba(217,119,6,0.35)' }}>🎙️</div>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', margin: '0 auto 0.75rem', boxShadow: 'var(--glow-primary)', fontFamily: 'Geist, sans-serif' }}>AN</div>
           <h1 className="auth-title">Create Account</h1>
           <p className="auth-subtitle">Start turning lectures into notes</p>
         </div>
 
         {/* Step indicators */}
-        <div style={{ display:'flex', gap:'1.5rem', justifyContent:'center', marginBottom:'1.5rem' }}>
+        <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
           <StepBadge n="1" label="Your details" active={step === 1} />
-          <div style={{ width:32, height:1, background:'var(--border-subtle)', alignSelf:'center' }} />
+          <div style={{ width: 32, height: 1, background: 'var(--border)', alignSelf: 'center' }} />
           <StepBadge n="2" label="Verify email"  active={step === 2} />
         </div>
 
         {/* ── Step 1 ─────────────────────────────────────────────── */}
         {step === 1 && (
           <>
-            {/* Google button */}
             {GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID' && (
-              <div style={{ marginBottom:'1.25rem' }}>
-                {googleErr && <div className="alert alert-error" style={{ marginBottom:'0.75rem', fontSize:'0.875rem' }}>⚠️ {googleErr}</div>}
+              <div style={{ marginBottom: '1.25rem' }}>
+                {googleErr && <div className="alert alert-error" style={{ marginBottom: '0.75rem', fontSize: '0.875rem' }}>⚠️ {googleErr}</div>}
                 {googleLoading && (
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'0.5rem', padding:'0.75rem', color:'var(--text-muted)', fontSize:'0.9rem' }}>
-                    <span className="spinner" style={{ width:18, height:18, borderWidth:2 }} /> Signing up with Google…
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Signing up with Google…
                   </div>
                 )}
-                <div ref={googleBtnRef} style={{ width:'100%', minHeight:44, display: googleLoading ? 'none' : 'block' }} />
-                <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', marginTop:'1.25rem' }}>
-                  <div style={{ flex:1, height:1, background:'var(--border-subtle)' }} />
-                  <span style={{ color:'var(--text-muted)', fontSize:'0.8125rem', fontWeight:500 }}>or register with email</span>
-                  <div style={{ flex:1, height:1, background:'var(--border-subtle)' }} />
+                <div ref={googleBtnRef} style={{ width: '100%', minHeight: 44, display: googleLoading ? 'none' : 'block' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1.25rem' }}>
+                  <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', fontWeight: 500 }}>or register with email</span>
+                  <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
                 </div>
               </div>
             )}
@@ -179,12 +196,12 @@ export default function Register() {
               </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="reg-password">Password</label>
-                <div style={{ position:'relative' }}>
+                <div style={{ position: 'relative' }}>
                   <input id="reg-password" type={showPw ? 'text' : 'password'} className="form-input"
                     placeholder="At least 8 characters" value={password}
-                    onChange={e => setPassword(e.target.value)} autoComplete="new-password" required style={{ paddingRight:'3rem' }} />
+                    onChange={e => setPassword(e.target.value)} autoComplete="new-password" required style={{ paddingRight: '3rem' }} />
                   <button type="button" onClick={() => setShowPw(p => !p)} aria-label="Toggle"
-                    style={{ position:'absolute', right:'0.75rem', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:'1.1rem', padding:'0.25rem' }}>
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.1rem', padding: '0.25rem' }}>
                     {showPw ? '🙈' : '👁️'}
                   </button>
                 </div>
@@ -195,13 +212,13 @@ export default function Register() {
                   placeholder="Re-enter password" value={confirm} onChange={e => setConfirm(e.target.value)} required />
               </div>
 
-              <button id="register-btn" type="submit" className="btn btn-primary btn-full btn-lg" disabled={step1Loading} style={{ marginTop:'0.5rem' }}>
-                {step1Loading ? <><span className="spinner" style={{ width:18, height:18, borderWidth:2 }} /> Creating account…</> : 'Create Account'}
+              <button id="register-btn" type="submit" className="btn btn-primary btn-full btn-lg" disabled={step1Loading} style={{ marginTop: '0.5rem' }}>
+                {step1Loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Creating account…</> : 'Create Account →'}
               </button>
 
-              <p style={{ textAlign:'center', fontSize:'0.875rem', color:'var(--text-muted)', marginTop:'1.25rem' }}>
+              <p style={{ textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '1.25rem' }}>
                 Already have an account?{' '}
-                <Link to="/login" style={{ fontWeight:600, color:'var(--brand-amber)' }}>Sign in</Link>
+                <Link to="/login" style={{ fontWeight: 700, color: 'var(--brand)' }}>Sign in</Link>
               </p>
             </form>
           </>
@@ -210,12 +227,12 @@ export default function Register() {
         {/* ── Step 2: OTP ──────────────────────────────────────── */}
         {step === 2 && (
           <form onSubmit={handleOtp} noValidate>
-            <div className="alert" style={{ background:'#F0FDF4', border:'1px solid #BBF7D0', color:'#166534', borderRadius:'var(--radius-md)', padding:'0.75rem 1rem', marginBottom:'1.25rem', display:'flex', gap:'0.5rem' }}>
+            <div className="alert alert-info" style={{ marginBottom: '1.25rem' }}>
               <span>📧</span>
-              <div style={{ fontSize:'0.875rem' }}>
+              <div style={{ fontSize: '0.875rem' }}>
                 <strong>Check your email</strong><br />
-                A 6-digit code was sent to <strong>{email}</strong>.<br />
-                <span style={{ color:'#15803D', fontSize:'0.8125rem' }}>Not in inbox? Check Spam/Promotions.</span>
+                A 6-digit code was sent to <strong style={{ color: 'var(--brand)' }}>{email}</strong>.<br />
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>Not in inbox? Check Spam/Promotions.</span>
               </div>
             </div>
 
@@ -224,29 +241,30 @@ export default function Register() {
 
             <div className="form-group">
               <label className="form-label">6-Digit Code</label>
-              <div style={{ display:'flex', gap:'0.5rem', justifyContent:'center' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                 {otp.map((digit, i) => (
                   <input key={i} ref={el => otpRefs.current[i] = el}
                     type="text" inputMode="numeric" maxLength={1} value={digit}
                     onChange={e => handleOtpChange(i, e.target.value)}
                     onKeyDown={e => handleOtpKey(i, e)} autoFocus={i === 0}
-                    style={{ width:'3rem', height:'3.25rem', textAlign:'center', fontSize:'1.5rem', fontWeight:700, border:'2.5px solid #D1D5DB', borderRadius:'10px', background:'#fff', color:'#1F2937', outline:'none', transition:'border-color 0.15s', caretColor:'transparent', boxSizing:'border-box' }}
-                    onFocus={e => e.target.style.borderColor = '#D97706'}
-                    onBlur={e  => e.target.style.borderColor = '#D1D5DB'}
+                    className="form-input"
+                    style={{ width: '3rem', height: '3.25rem', textAlign: 'center', fontSize: '1.5rem', fontWeight: 700, padding: 0, fontFamily: 'JetBrains Mono, monospace', caretColor: 'transparent' }}
+                    onFocus={e => e.target.style.borderColor = 'var(--brand)'}
+                    onBlur={e  => e.target.style.borderColor = 'var(--border)'}
                   />
                 ))}
               </div>
-              <p style={{ textAlign:'center', color:'var(--text-muted)', fontSize:'0.8125rem', marginTop:'0.5rem' }}>Expires in 10 minutes</p>
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8125rem', marginTop: '0.5rem', fontFamily: 'JetBrains Mono, monospace' }}>Expires in 10 minutes</p>
             </div>
 
             <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={step2Loading}>
-              {step2Loading ? <><span className="spinner" style={{ width:18, height:18, borderWidth:2 }} /> Verifying…</> : '✓ Verify & Sign In'}
+              {step2Loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Verifying…</> : '✓ Verify & Sign In'}
             </button>
 
-            <div style={{ display:'flex', justifyContent:'space-between', marginTop:'1rem' }}>
-              <button type="button" onClick={handleResend} style={{ background:'none', border:'none', color:'var(--brand-amber)', cursor:'pointer', fontSize:'0.875rem', fontWeight:600 }}>Resend code</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+              <button type="button" onClick={handleResend} style={{ background: 'none', border: 'none', color: 'var(--brand)', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600 }}>Resend code</button>
               <button type="button" onClick={() => { setStep(1); setStep2Err(''); setResendMsg(''); setOtp(['','','','','','']) }}
-                style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'0.875rem' }}>Change details</button>
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.875rem' }}>Change details</button>
             </div>
           </form>
         )}

@@ -1,0 +1,178 @@
+<mxfile host="app.diagrams.net" agent="Antigravity">
+  <diagram id="model-arch" name="Model Architecture">
+    <mxGraphModel dx="2575" dy="1520" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1520" math="0" shadow="0" adaptiveColors="auto">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=24;fontColor=#1a237e;" value="AUDIONOTES AI — MODEL ARCHITECTURE" vertex="1">
+          <mxGeometry height="50" width="1200" x="227" y="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_whisper" parent="1" style="swimlane;startSize=40;fillColor=#e3f2fd;strokeColor=#1565c0;html=1;fontSize=16;fontStyle=1;fontColor=#1565c0;" value="🎙 MODEL 1 — WHISPER ASR (whisper-classroom-kn-hi-en)" vertex="1">
+          <mxGeometry height="370" width="1490" x="80" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="w_input" parent="lane_whisper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1565c0;fontSize=14;" value="Audio Input&lt;br&gt;WAV 16kHz mono&lt;br&gt;25-second chunk" vertex="1">
+          <mxGeometry height="90" width="175" x="20" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="w_mel" parent="lane_whisper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1565c0;fontSize=14;" value="Log-Mel Spectrogram&lt;br&gt;80-channel filterbank&lt;br&gt;30-second window&lt;br&gt;10ms hop" vertex="1">
+          <mxGeometry height="100" width="190" x="220" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="w_enc" parent="lane_whisper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90caf9;strokeColor=#1565c0;fontSize=14;" value="Transformer Encoder&lt;br&gt;• Conv1D stem (×2)&lt;br&gt;• Sinusoidal pos emb&lt;br&gt;• N attention layers&lt;br&gt;• Self-attention + FFN" vertex="1">
+          <mxGeometry height="120" width="215" x="425" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="w_dec" parent="lane_whisper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#64b5f6;strokeColor=#1565c0;fontSize=14;" value="Transformer Decoder&lt;br&gt;• Language token&lt;br&gt;• Cross-attention on enc&lt;br&gt;• Autoregressive&lt;br&gt;• Beam search" vertex="1">
+          <mxGeometry height="120" width="215" x="660" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="w_lang" parent="lane_whisper" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=14;" value="Language&lt;br&gt;Detection&lt;br&gt;kn / hi / en" vertex="1">
+          <mxGeometry height="100" width="160" x="895" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="w_out" parent="lane_whisper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="Raw Transcript&lt;br&gt;+ Detected Language&lt;br&gt;→ Translation pipeline" vertex="1">
+          <mxGeometry height="90" width="190" x="1075" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="w_details" parent="lane_whisper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=13;align=left;spacingLeft=10;verticalAlign=top;" value="&lt;b&gt;Model:&lt;/b&gt; udayakumar8214/whisper-classroom-kn-hi-en&lt;br&gt;&lt;b&gt;Base:&lt;/b&gt; openai/whisper-small (244M params)&lt;br&gt;&lt;b&gt;Fine-tuned:&lt;/b&gt; Classroom Kannada / Hindi / English&lt;br&gt;&lt;b&gt;Loading:&lt;/b&gt; LAZY — loaded on first audio upload (thread-safe lock)&lt;br&gt;&lt;b&gt;Singleton:&lt;/b&gt; cached in model_registry._transcriber" vertex="1">
+          <mxGeometry height="110" width="620" x="20" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="w_perf" parent="lane_whisper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=13;align=left;spacingLeft=10;verticalAlign=top;" value="&lt;b&gt;Optimisations:&lt;/b&gt;&lt;br&gt;• 1 intra-op torch thread per worker (no CPU thrashing)&lt;br&gt;• soundfile for fast WAV load (vs librosa)&lt;br&gt;• torch.inference_mode() (faster than no_grad)&lt;br&gt;• Skip silent chunks (RMS &lt; 0.002)" vertex="1">
+          <mxGeometry height="110" width="580" x="660" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="ew1" edge="1" parent="lane_whisper" source="w_input" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#1565c0;strokeWidth=2;fontSize=13;" target="w_mel" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ew2" edge="1" parent="lane_whisper" source="w_mel" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#1565c0;strokeWidth=2;" target="w_enc" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ew3" edge="1" parent="lane_whisper" source="w_enc" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#1565c0;strokeWidth=2;" target="w_dec" value="encode">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ew4" edge="1" parent="lane_whisper" source="w_dec" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#1565c0;strokeWidth=2;" target="w_lang" value="tokens">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ew5" edge="1" parent="lane_whisper" source="w_lang" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#82b366;strokeWidth=2;" target="w_out" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_helsinki" parent="1" style="swimlane;startSize=40;fillColor=#e8f5e9;strokeColor=#2e7d32;html=1;fontSize=16;fontStyle=1;fontColor=#2e7d32;" value="🌐 MODEL 2 — HELSINKI-NLP TRANSLATION (opus-mt-mul-en)" vertex="1">
+          <mxGeometry height="310" width="1490" x="80" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="h_in" parent="lane_helsinki" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#2e7d32;fontSize=14;" value="Non-English Text&lt;br&gt;kn / hi / other&lt;br&gt;from Whisper" vertex="1">
+          <mxGeometry height="90" width="175" x="20" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="h_tok" parent="lane_helsinki" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontSize=14;" value="SentencePiece&lt;br&gt;Tokenizer&lt;br&gt;(multilingual vocab)" vertex="1">
+          <mxGeometry height="90" width="190" x="215" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="h_enc" parent="lane_helsinki" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a5d6a7;strokeColor=#2e7d32;fontSize=14;" value="Encoder&lt;br&gt;(Transformer)&lt;br&gt;Source lang repr" vertex="1">
+          <mxGeometry height="90" width="185" x="425" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="h_dec" parent="lane_helsinki" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81c784;strokeColor=#2e7d32;fontSize=14;" value="Decoder&lt;br&gt;(Transformer)&lt;br&gt;English generation" vertex="1">
+          <mxGeometry height="90" width="185" x="630" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="h_out" parent="lane_helsinki" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="English Text&lt;br&gt;→ NLP Agent&lt;br&gt;→ Qwen input" vertex="1">
+          <mxGeometry height="90" width="175" x="835" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="h_skip" parent="lane_helsinki" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=14;" value="lang==en?&lt;br&gt;SKIP&lt;br&gt;translation" vertex="1">
+          <mxGeometry height="80" width="160" x="1030" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="h_details" parent="lane_helsinki" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=13;align=left;spacingLeft=10;verticalAlign=top;" value="&lt;b&gt;Model:&lt;/b&gt; Helsinki-NLP/opus-mt-mul-en&lt;br&gt;&lt;b&gt;Type:&lt;/b&gt; Encoder-Decoder Transformer (MarianMT)&lt;br&gt;&lt;b&gt;Loaded with:&lt;/b&gt; Whisper Transcriber (same lazy load)&lt;br&gt;&lt;b&gt;Skip:&lt;/b&gt; English text bypasses translation entirely" vertex="1">
+          <mxGeometry height="90" width="580" x="20" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="eh1" edge="1" parent="lane_helsinki" source="h_in" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#2e7d32;strokeWidth=2;" target="h_tok" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eh2" edge="1" parent="lane_helsinki" source="h_tok" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#2e7d32;strokeWidth=2;" target="h_enc" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eh3" edge="1" parent="lane_helsinki" source="h_enc" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#2e7d32;strokeWidth=2;" target="h_dec" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eh4" edge="1" parent="lane_helsinki" source="h_dec" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#82b366;strokeWidth=2;" target="h_out" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eh5" edge="1" parent="lane_helsinki" source="h_in" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#f9a825;strokeWidth=2;dashed=1;" target="h_skip" value="if en: skip">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="107" y="175" />
+              <mxPoint x="1110" y="175" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lane_qwen" parent="1" style="swimlane;startSize=40;fillColor=#fff8e1;strokeColor=#f57f17;html=1;fontSize=16;fontStyle=1;fontColor=#e65100;" value="🤖 MODEL 3 — QWEN 2.5 (3B-Instruct, 4-bit quantized)" vertex="1">
+          <mxGeometry height="380" width="1490" x="80" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="q_in" parent="lane_qwen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#f57f17;fontSize=14;" value="English Transcript&lt;br&gt;(full, assembled)&lt;br&gt;system + user prompt" vertex="1">
+          <mxGeometry height="90" width="190" x="20" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="q_tok" parent="lane_qwen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#f57f17;fontSize=14;" value="Qwen2 Tokenizer&lt;br&gt;Chat template&lt;br&gt;apply_chat_template" vertex="1">
+          <mxGeometry height="90" width="195" x="230" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="q_quant" parent="lane_qwen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc02;strokeColor=#f57f17;fontSize=14;" value="4-bit NF4 Quant&lt;br&gt;BitsAndBytesConfig&lt;br&gt;bnb_4bit_compute_dtype&lt;br&gt;=float16" vertex="1">
+          <mxGeometry height="100" width="210" x="445" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="q_attn" parent="lane_qwen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffb300;strokeColor=#f57f17;fontSize=14;" value="Transformer Layers&lt;br&gt;Grouped Query Attn&lt;br&gt;RoPE embeddings&lt;br&gt;RMSNorm&lt;br&gt;SwiGLU FFN" vertex="1">
+          <mxGeometry height="120" width="215" x="675" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="q_gen" parent="lane_qwen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffa000;strokeColor=#f57f17;fontSize=14;" value="Text Generation&lt;br&gt;max_new_tokens=2048&lt;br&gt;Temperature sampling&lt;br&gt;JSON output format" vertex="1">
+          <mxGeometry height="100" width="205" x="910" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="q_out" parent="lane_qwen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="Structured JSON&lt;br&gt;{title, summary,&lt;br&gt;sections, keywords,&lt;br&gt;key_points}" vertex="1">
+          <mxGeometry height="90" width="195" x="1135" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="q_details" parent="lane_qwen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=13;align=left;spacingLeft=10;verticalAlign=top;" value="&lt;b&gt;Model ID:&lt;/b&gt; Qwen/Qwen2.5-3B-Instruct&lt;br&gt;&lt;b&gt;Params:&lt;/b&gt; 3B (quantized to ~2–3GB VRAM)&lt;br&gt;&lt;b&gt;Loading:&lt;/b&gt; EAGER at FastAPI startup lifespan event&lt;br&gt;&lt;b&gt;Device:&lt;/b&gt; CUDA (4-bit NF4) or CPU (float32 fallback)&lt;br&gt;&lt;b&gt;Singleton:&lt;/b&gt; cached in model_registry._qwen_pipeline" vertex="1">
+          <mxGeometry height="110" width="510" x="20" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="q_prompts" parent="lane_qwen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#388e3c;fontSize=13;align=left;spacingLeft=10;verticalAlign=top;" value="&lt;b&gt;Prompt Chain (3 calls):&lt;/b&gt;&lt;br&gt;Prompt #1: Extract topics &amp; subtopics&lt;br&gt;Prompt #2: Generate structured notes + sections&lt;br&gt;Prompt #3: Keywords + summary + word count" vertex="1">
+          <mxGeometry height="110" width="520" x="555" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="eq1" edge="1" parent="lane_qwen" source="q_in" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#f57f17;strokeWidth=2;" target="q_tok" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eq2" edge="1" parent="lane_qwen" source="q_tok" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#f57f17;strokeWidth=2;" target="q_quant" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eq3" edge="1" parent="lane_qwen" source="q_quant" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#f57f17;strokeWidth=2;" target="q_attn" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eq4" edge="1" parent="lane_qwen" source="q_attn" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#f57f17;strokeWidth=2;" target="q_gen" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eq5" edge="1" parent="lane_qwen" source="q_gen" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#82b366;strokeWidth=2;" target="q_out" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cross1" edge="1" parent="1" source="w_out" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#1565c0;strokeWidth=2;fontSize=13;fontStyle=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="h_in" value="non-English text">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1170" y="505" />
+              <mxPoint x="107" y="505" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cross2" edge="1" parent="1" source="h_out" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#2e7d32;strokeWidth=2;fontSize=13;fontStyle=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="q_in" value="English text">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="922" y="870" />
+              <mxPoint x="115" y="870" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="registry" parent="1" style="swimlane;startSize=36;fillColor=#e8eaf6;strokeColor=#3949ab;html=1;fontSize=15;align=center;" value="&lt;b&gt;MODEL REGISTRY (model_registry.py)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="120" width="1490" x="80" y="1380" as="geometry" />
+        </mxCell>
+        <mxCell id="reg1" parent="registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="get_transcriber()&lt;br&gt;Lazy load Whisper&lt;br&gt;+ Helsinki" vertex="1">
+          <mxGeometry height="70" width="200" x="20" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="reg2" parent="registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=14;" value="load_qwen_model()&lt;br&gt;EAGER at startup&lt;br&gt;lifespan event" vertex="1">
+          <mxGeometry height="70" width="200" x="240" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="reg3" parent="registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" value="get_agent_class()&lt;br&gt;TranscriptAgent&lt;br&gt;per-session instance" vertex="1">
+          <mxGeometry height="70" width="210" x="460" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="reg4" parent="registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="models_loaded()&lt;br&gt;Health check dict&lt;br&gt;{transcriber, qwen}" vertex="1">
+          <mxGeometry height="70" width="200" x="690" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="reg5" parent="registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f9a825;fontSize=14;" value="Thread-safe&lt;br&gt;Double-checked&lt;br&gt;Locking (DCL)" vertex="1">
+          <mxGeometry height="70" width="185" x="910" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="reg6" parent="registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" value="Singleton pattern&lt;br&gt;Module-level globals&lt;br&gt;Cached forever" vertex="1">
+          <mxGeometry height="70" width="195" x="1115" y="35" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

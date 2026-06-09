@@ -20,11 +20,12 @@ function LoadingScreen({ message, error }) {
         width: 56, height: 56, borderRadius: 16,
         background: 'linear-gradient(135deg, #D97706, #F59E0B)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '1.75rem', boxShadow: '0 4px 16px rgba(217,119,6,0.35)',
-      }}>🎙️</div>
+        fontSize: '1rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em',
+        fontFamily: 'Geist, sans-serif',
+      }}>AN</div>
       <div style={{ textAlign: 'center' }}>
         {error ? (
-          <p style={{ color: '#EF4444', fontSize: '0.9375rem' }}>⚠️ {error}</p>
+          <p style={{ color: '#EF4444', fontSize: '0.9375rem' }}>{error}</p>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', justifyContent: 'center' }}>
             <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />

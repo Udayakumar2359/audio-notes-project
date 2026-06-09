@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api'
+import { useTheme } from '../context/ThemeContext'
 
 export default function Profile() {
   const navigate = useNavigate()
+  const { theme, toggleTheme } = useTheme()
   const [user,    setUser]    = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -58,36 +60,39 @@ export default function Profile() {
   const isGoogleUser = user && !user.hashed_password && user.google_id
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)' }}>
       {/* Header */}
       <header style={{
-        background: 'var(--bg-card)', borderBottom: '1px solid var(--border-subtle)',
-        padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: 'var(--bg-glass)', borderBottom: '1px solid var(--glass-border)',
+        padding: '0 1.5rem', height: 64,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        backdropFilter: 'var(--glass-blur)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          <span style={{ fontSize: '1.5rem' }}>🎙️</span>
-          <span style={{ fontWeight: 700, fontSize: '1.125rem', color: 'var(--text-primary)' }}>AudioNotes AI</span>
+          <div style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 900, color: '#fff', boxShadow: 'var(--glow-sm)', fontFamily: 'Geist, sans-serif', letterSpacing: '-0.02em' }}>AN</div>
+          <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 700, fontSize: '1.0625rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>AudioNotes AI</span>
         </div>
-        <Link to="/dashboard" style={{ color: 'var(--brand-amber)', fontWeight: 600, fontSize: '0.875rem' }}>
-          Dashboard
-        </Link>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+          <Link to="/dashboard" className="btn btn-secondary btn-sm">← Dashboard</Link>
+        </div>
       </header>
 
       <div style={{ maxWidth: 560, margin: '2rem auto', padding: '0 1rem' }}>
 
         {/* Profile card */}
-        <div style={{
-          background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--border-subtle)', padding: '2rem', marginBottom: '1.5rem',
-        }}>
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
           {/* Avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
             <div style={{
               width: 64, height: 64, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #D97706, #F59E0B)',
+              background: 'var(--gradient-primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '1.75rem', fontWeight: 700, color: '#fff',
-              flexShrink: 0,
+              flexShrink: 0, boxShadow: 'var(--glow-primary)',
+              fontFamily: 'Geist, sans-serif',
             }}>
               {user?.name?.[0]?.toUpperCase() || '?'}
             </div>
@@ -131,10 +136,7 @@ export default function Profile() {
 
         {/* ── Reset Password (only for email accounts) ───────── */}
         {!isGoogleUser && (
-          <div style={{
-            background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--border-subtle)', padding: '1.5rem', marginBottom: '1.5rem',
-          }}>
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>
@@ -209,14 +211,8 @@ export default function Profile() {
         )}
 
         {/* Sign Out */}
-        <button onClick={handleLogout} className="btn btn-full"
-          style={{
-            background: 'transparent', border: '1.5px solid #FCA5A5', color: '#EF4444',
-            padding: '0.75rem', borderRadius: 'var(--radius-md)', fontWeight: 600,
-            cursor: 'pointer', transition: 'all 0.15s',
-          }}
-          onMouseOver={e => { e.currentTarget.style.background = '#FEF2F2' }}
-          onMouseOut ={e => { e.currentTarget.style.background = 'transparent' }}>
+        <button onClick={handleLogout} className="btn btn-danger btn-full"
+          style={{ padding: '0.75rem', fontSize: '0.9375rem', fontWeight: 600 }}>
           Sign Out
         </button>
       </div>

@@ -1,0 +1,316 @@
+<mxfile host="app.diagrams.net" agent="Antigravity">
+  <diagram id="audionotes-architecture" name="AudioNotes AI Architecture">
+    <mxGraphModel dx="3371" dy="1013" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1520" math="0" shadow="0" adaptiveColors="auto">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=24;fontColor=#1a237e;" value="AUDIONOTES AI — SYSTEM ARCHITECTURE" vertex="1">
+          <mxGeometry height="50" width="1200" x="207" y="18" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_fe" parent="1" style="swimlane;startSize=36;fillColor=#e8f4fd;strokeColor=#6c8ebf;html=1;fontSize=16;fontColor=#1a237e;fontStyle=1;align=left;spacingLeft=14;" value="&lt;b&gt;FRONTEND&lt;/b&gt; — React + Vite (port 5173)" vertex="1">
+          <mxGeometry height="180" width="1490" x="80" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_landing" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Landing Page" vertex="1">
+          <mxGeometry height="90" width="120" x="20" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_auth" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Login / Register&lt;br&gt;Forgot Password&lt;br&gt;SSO" vertex="1">
+          <mxGeometry height="90" width="140" x="158" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_dashboard" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Dashboard" vertex="1">
+          <mxGeometry height="90" width="120" x="316" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_upload" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Upload Page&lt;br&gt;(file / YouTube)" vertex="1">
+          <mxGeometry height="90" width="140" x="454" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_notes" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Notes Viewer&lt;br&gt;Export, Share" vertex="1">
+          <mxGeometry height="90" width="140" x="612" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_groups" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Study Groups&lt;br&gt;Chat" vertex="1">
+          <mxGeometry height="90" width="130" x="770" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_profile" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Profile Page" vertex="1">
+          <mxGeometry height="90" width="120" x="918" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_agent" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" value="AI Agent&lt;br&gt;Chat Panel" vertex="1">
+          <mxGeometry height="90" width="130" x="1056" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_cred" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" value="Credibility&lt;br&gt;Badge" vertex="1">
+          <mxGeometry height="90" width="120" x="1204" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_api" parent="lane_fe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;" value="api.js&lt;br&gt;Axios Client" vertex="1">
+          <mxGeometry height="90" width="120" x="1350" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_be" parent="1" style="swimlane;startSize=36;fillColor=#f0f7ee;strokeColor=#82b366;html=1;fontSize=16;fontColor=#1a5c00;fontStyle=1;align=left;spacingLeft=14;" value="&lt;b&gt;BACKEND&lt;/b&gt; — FastAPI (port 8000)" vertex="1">
+          <mxGeometry height="180" width="1490" x="80" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="be_auth_routes" parent="lane_be" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="/auth/*&lt;br&gt;Login, OTP&lt;br&gt;Google OAuth" vertex="1">
+          <mxGeometry height="90" width="165" x="20" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="be_audio_routes" parent="lane_be" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="/audio/*&lt;br&gt;Upload, YouTube&lt;br&gt;Status, Notes" vertex="1">
+          <mxGeometry height="90" width="165" x="203" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="be_groups_routes" parent="lane_be" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="/groups/*&lt;br&gt;Create, Join&lt;br&gt;Chat, Files" vertex="1">
+          <mxGeometry height="90" width="160" x="386" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="be_share_routes" parent="lane_be" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="/share/*&lt;br&gt;Shared Notes&lt;br&gt;Public Access" vertex="1">
+          <mxGeometry height="90" width="155" x="564" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="be_eval_routes" parent="lane_be" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="/evaluate&lt;br&gt;WER, BLEU&lt;br&gt;ROUGE" vertex="1">
+          <mxGeometry height="90" width="150" x="737" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="be_agent_routes" parent="lane_be" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" value="/agent/*&lt;br&gt;NLP Chat&lt;br&gt;Sessions" vertex="1">
+          <mxGeometry height="90" width="150" x="905" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="be_auth_module" parent="lane_be" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" value="auth.py&lt;br&gt;JWT + OTP&lt;br&gt;Hash / Verify" vertex="1">
+          <mxGeometry height="90" width="155" x="1073" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="be_bg_tasks" parent="lane_be" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=14;" value="Background&lt;br&gt;Tasks&lt;br&gt;(FastAPI)" vertex="1">
+          <mxGeometry height="90" width="150" x="1246" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_audio_bg" edge="1" parent="lane_be" source="be_audio_routes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#82b366;strokeWidth=2;" target="be_bg_tasks" value="triggers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_auth_mod" edge="1" parent="lane_be" source="be_auth_routes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#d6b656;strokeWidth=2;" target="be_auth_module">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_ml" parent="1" style="swimlane;startSize=36;fillColor=#fff8e1;strokeColor=#d6b656;html=1;fontSize=16;fontColor=#5d4037;fontStyle=1;align=left;spacingLeft=14;" value="&lt;b&gt;ML PIPELINE&lt;/b&gt; — Background Thread Pool" vertex="1">
+          <mxGeometry height="180" width="1490" x="80" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_ap" parent="lane_ml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" value="audio_processor&lt;br&gt;Convert → WAV&lt;br&gt;Chunk 25s" vertex="1">
+          <mxGeometry height="90" width="150" x="10" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_transcriber" parent="lane_ml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="transcriber&lt;br&gt;Whisper ASR&lt;br&gt;kn / hi / en" vertex="1">
+          <mxGeometry height="90" width="150" x="185" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_translator" parent="lane_ml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="translator&lt;br&gt;Helsinki MT&lt;br&gt;mul → en" vertex="1">
+          <mxGeometry height="90" width="150" x="520" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_nlp" parent="lane_ml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=14;" value="nlp_agent&lt;br&gt;Qwen 2.5-7B&lt;br&gt;Notes / Keywords" vertex="1">
+          <mxGeometry height="90" width="160" x="680" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_polisher" parent="lane_ml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="polisher&lt;br&gt;Transcript&lt;br&gt;Polish" vertex="1">
+          <mxGeometry height="90" width="140" x="855" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_credibility" parent="lane_ml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" value="credibility&lt;br&gt;ROUGE Score&lt;br&gt;+ Grade" vertex="1">
+          <mxGeometry height="90" width="150" x="1010" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_exporter" parent="lane_ml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="exporter&lt;br&gt;TXT / DOCX&lt;br&gt;PDF" vertex="1">
+          <mxGeometry height="90" width="140" x="1175" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_agent" parent="lane_ml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" value="agent&lt;br&gt;Transcript&lt;br&gt;Agent Chat" vertex="1">
+          <mxGeometry height="90" width="140" x="1330" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_ap_tr" edge="1" parent="lane_ml" source="ml_ap" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;strokeWidth=2;" target="ml_transcriber" value="WAV chunks">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_trans_nlp" edge="1" parent="lane_ml" source="ml_translator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;strokeWidth=2;" target="ml_nlp" value="english">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_nlp_pol" edge="1" parent="lane_ml" source="ml_nlp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;strokeWidth=2;" target="ml_polisher" value="transcript">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_pol_cred" edge="1" parent="lane_ml" source="ml_polisher" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;strokeWidth=2;" target="ml_credibility" value="notes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_cred_exp" edge="1" parent="lane_ml" source="ml_credibility" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;strokeWidth=2;" target="ml_exporter" value="scored">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_db" parent="1" style="swimlane;startSize=36;fillColor=#fce4ec;strokeColor=#b85450;html=1;fontSize=16;fontColor=#880e4f;fontStyle=1;align=left;spacingLeft=14;" value="&lt;b&gt;DATA LAYER&lt;/b&gt; — Persistence &amp; Storage" vertex="1">
+          <mxGeometry height="180" width="1490" x="90" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="db_pg" parent="lane_db" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;" value="PostgreSQL&lt;br&gt;Railway / Supabase" vertex="1">
+          <mxGeometry height="110" width="160" x="20" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="db_sqlalchemy" parent="lane_db" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" value="SQLAlchemy ORM&lt;br&gt;database.py" vertex="1">
+          <mxGeometry height="90" width="155" x="530" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="db_localdb" parent="lane_db" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=14;" value="SQLite&lt;br&gt;(local dev)" vertex="1">
+          <mxGeometry height="110" width="130" x="710" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="db_uploads" parent="lane_db" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=14;" value="File System&lt;br&gt;/uploads/&lt;br&gt;WAV · MP3 · M4A" vertex="1">
+          <mxGeometry height="110" width="150" x="860" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_db_pg" edge="1" parent="lane_db" source="db_tables" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#b85450;strokeWidth=2;" target="db_pg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="GIbAk9fMVBKtB2vEFjeM-1" edge="1" parent="lane_db" source="db_sqlalchemy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#b85450;strokeWidth=2;" target="db_tables" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="900" as="sourcePoint" />
+            <mxPoint x="270" y="885" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="db_tables" parent="lane_db" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" value="Users · AudioFile · AudioChunk&lt;br&gt;Transcription · StructuredNotes&lt;br&gt;SharedNote · StudyGroup · GroupMember&lt;br&gt;GroupNote · GroupFile · ChatMessage" vertex="1">
+          <mxGeometry height="110" width="310" x="200" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_ext" parent="1" style="swimlane;startSize=36;fillColor=#ede7f6;strokeColor=#9673a6;html=1;fontSize=16;fontColor=#4a148c;fontStyle=1;align=left;spacingLeft=14;" value="&lt;b&gt;EXTERNAL SERVICES&lt;/b&gt;" vertex="1">
+          <mxGeometry height="180" width="1490" x="80" y="1080" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_google" parent="lane_ext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" value="Google OAuth 2.0&lt;br&gt;ID Token Verify" vertex="1">
+          <mxGeometry height="90" width="165" x="20" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_smtp" parent="lane_ext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" value="SMTP Email&lt;br&gt;OTP Delivery" vertex="1">
+          <mxGeometry height="90" width="155" x="203" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_whisper" parent="lane_ext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Whisper ASR&lt;br&gt;whisper-classroom&lt;br&gt;kn-hi-en" vertex="1">
+          <mxGeometry height="110" width="185" x="376" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_qwen" parent="lane_ext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=14;" value="Qwen 2.5-7B&lt;br&gt;4-bit quantized&lt;br&gt;Ollama / HF" vertex="1">
+          <mxGeometry height="110" width="175" x="579" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_helsinki" parent="lane_ext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Helsinki-NLP&lt;br&gt;opus-mt-mul-en&lt;br&gt;Translation" vertex="1">
+          <mxGeometry height="110" width="170" x="772" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_ytdlp" parent="lane_ext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="yt-dlp&lt;br&gt;YouTube Audio&lt;br&gt;Download" vertex="1">
+          <mxGeometry height="90" width="150" x="960" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_railway" parent="lane_ext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" value="Railway / Supabase&lt;br&gt;Production Hosting" vertex="1">
+          <mxGeometry height="90" width="170" x="1128" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_fe_api" edge="1" parent="1" source="fe_api" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#6c8ebf;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="be_audio_routes" value="HTTP / REST">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1410" y="295" />
+              <mxPoint x="286" y="295" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_bg_ml" edge="1" parent="1" source="be_bg_tasks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#d6b656;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ml_ap" value="background thread">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1321" y="545" />
+              <mxPoint x="95" y="545" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_agent_ml" edge="1" parent="1" source="be_agent_routes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#9673a6;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ml_agent">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="980" y="545" />
+              <mxPoint x="1400" y="545" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_ml_db" edge="1" parent="1" source="ml_credibility" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#b85450;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="db_sqlalchemy" value="save results">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1085" y="795" />
+              <mxPoint x="608" y="795" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_reg_whisper" edge="1" parent="1" source="db_model_registry" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#6c8ebf;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ext_whisper" value="lazy load">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1108" y="1045" />
+              <mxPoint x="469" y="1045" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_auth_google" edge="1" parent="1" source="be_auth_module" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#9673a6;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ext_google" value="verify token">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="25" y="420" />
+              <mxPoint x="25" y="1152" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_auth_smtp" edge="1" parent="1" source="be_auth_module" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#9673a6;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ext_smtp" value="send OTP">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="40" y="420" />
+              <mxPoint x="40" y="1152" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_nlp_qwen" edge="1" parent="1" source="ml_cleaner" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#d6b656;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ext_qwen" value="inference">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="15" y="1152" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_trans_hels" edge="1" parent="1" source="ml_translator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#6c8ebf;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ext_helsinki" value="translate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="595" y="700" />
+              <mxPoint x="10" y="700" />
+              <mxPoint x="10" y="1152" />
+              <mxPoint x="852" y="1152" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_upload_fs" edge="1" parent="1" source="db_model_registry" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#d6b656;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="db_uploads" value="store audio">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1600" y="420" />
+              <mxPoint x="1600" y="935" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_yt" edge="1" parent="1" source="be_audio_routes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#82b366;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="ext_ytdlp" value="yt-dlp download">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1620" y="420" />
+              <mxPoint x="1620" y="1152" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pipeline_label" parent="1" style="text;html=1;strokeColor=#d6b656;fillColor=#fff8e1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontColor=#5d4037;spacingLeft=12;" value="&lt;b&gt;ML Pipeline:&lt;/b&gt;  ① Convert WAV  →  ② Chunk (25s)  →  ③ Whisper ASR  →  ④ Clean + Translate  →  ⑤ Qwen NLP (Topics · Notes · Keywords)  →  ⑥ ROUGE Credibility Score  →  ⑦ Save to DB" vertex="1">
+          <mxGeometry height="40" width="1490" x="80" y="1278" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_bg" parent="1" style="swimlane;startSize=28;fillColor=#f5f5f5;strokeColor=#cccccc;html=1;fontSize=14;align=center;" value="&lt;b&gt;LEGEND&lt;/b&gt;" vertex="1">
+          <mxGeometry height="120" width="620" x="80" y="1335" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_process" parent="legend_bg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" value="Frontend / Process" vertex="1">
+          <mxGeometry height="28" width="135" x="10" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_pipeline" parent="legend_bg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" value="ML Stage" vertex="1">
+          <mxGeometry height="28" width="120" x="155" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_solution" parent="legend_bg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" value="API Route" vertex="1">
+          <mxGeometry height="28" width="120" x="285" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_impact" parent="legend_bg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" value="Data / Storage" vertex="1">
+          <mxGeometry height="28" width="130" x="415" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_ref" parent="legend_bg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;" value="AI / External Service" vertex="1">
+          <mxGeometry height="28" width="135" x="10" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_warn" parent="legend_bg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d6b656;fontSize=13;" value="Risk / Processing" vertex="1">
+          <mxGeometry height="28" width="130" x="155" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="scope_box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;align=left;spacingLeft=12;fontSize=13;html=1;" value="&lt;b&gt;Scope:&lt;/b&gt; AudioNotes AI — Full System Architecture&lt;br&gt;&lt;b&gt;Date:&lt;/b&gt; 2026-06-04&lt;br&gt;&lt;b&gt;Stack:&lt;/b&gt; React + FastAPI + Whisper + Qwen 2.5 + PostgreSQL" vertex="1">
+          <mxGeometry height="120" width="440" x="720" y="1335" as="geometry" />
+        </mxCell>
+        <mxCell id="GIbAk9fMVBKtB2vEFjeM-2" edge="1" parent="1" source="be_audio_routes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#d6b656;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="db_model_registry" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="448" y="402" as="sourcePoint" />
+            <mxPoint x="1100" y="900" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="db_model_registry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" value="model_registry&lt;br&gt;Lazy Whisper Load&lt;br&gt;Qwen Eager Load" vertex="1">
+          <mxGeometry height="90" width="165" x="1119" y="865" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_cleaner" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" value="cleaner&lt;br&gt;Filler Removal&lt;br&gt;Hallucination" vertex="1">
+          <mxGeometry height="90" width="150" x="430" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_tr_cl" edge="1" parent="1" source="ml_transcriber" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;strokeWidth=2;" target="ml_cleaner" value="raw text">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_cl_trans" edge="1" parent="1" source="ml_cleaner" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#555555;strokeWidth=2;" target="ml_translator" value="clean text">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="GIbAk9fMVBKtB2vEFjeM-3" edge="1" parent="1" source="ml_nlp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=12;strokeColor=#d6b656;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ml_cleaner" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="15" y="670" />
+            </Array>
+            <mxPoint x="760" y="652" as="sourcePoint" />
+            <mxPoint x="659" y="1185" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
