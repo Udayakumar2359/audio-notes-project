@@ -200,7 +200,7 @@ export default function Dashboard() {
         <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h1 style={{ marginBottom: '0.375rem', fontFamily: 'Geist, sans-serif' }}>
-              Good to see you, <span style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{user?.name?.split(' ')[0] || 'Student'}</span>
+              Good to see you, <span style={{ color: 'var(--gradient-primary)' }}>{user?.name?.split(' ')[0] || 'Student'}</span>
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9375rem' }}>
               Your multilingual lecture recordings and AI-generated notes.
@@ -223,7 +223,12 @@ export default function Dashboard() {
             <div className="stat-label">Notes Ready</div>
           </div>
           <div className="stat-card" style={{ borderColor: busyCount > 0 ? 'rgba(251,191,36,0.3)' : 'var(--glass-border)' }}>
-            <div className="stat-value" style={{ background: busyCount > 0 ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            <div
+              className="stat-value"
+              style={busyCount > 0 ? {
+                color: '#f59e0b',
+              } : undefined}
+            >
               {busyCount}
             </div>
             <div className="stat-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
@@ -231,8 +236,9 @@ export default function Dashboard() {
               Processing
             </div>
           </div>
+
           <div className="stat-card" style={{ borderColor: 'rgba(168,85,247,0.3)' }}>
-            <div className="stat-value" style={{ background: 'linear-gradient(135deg, #a855f7, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontSize: '1.375rem', letterSpacing: '0.05em' }}>KN·HI·EN</div>
+            <div className="stat-value" style={{ color: '#c084fc', fontSize: '1.375rem', letterSpacing: '0.05em' }}>KN·HI·EN</div>
             <div className="stat-label">Languages</div>
           </div>
         </div>

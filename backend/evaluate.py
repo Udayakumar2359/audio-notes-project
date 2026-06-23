@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 os.environ.setdefault("PYTHONUTF8", "1")
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -28,16 +29,35 @@ load_dotenv()
 # ─────────────────────────────────────────────────────────────────────────────
 
 parser = argparse.ArgumentParser(description="AudioNotes AI — Model Evaluation")
-parser.add_argument("--model",       choices=["asr", "translation", "notes", "all"], default="all",
-                    help="Which model to evaluate (default: all)")
-parser.add_argument("--audio",       type=str, default=None,
-                    help="Path to a WAV/audio file for custom ASR evaluation")
-parser.add_argument("--ref",         type=str, default=None,
-                    help="Reference transcription for the custom audio file")
-parser.add_argument("--report-json", type=str, default=None,
-                    help="Save full evaluation report as JSON to this path")
-parser.add_argument("--skip-load",   action="store_true",
-                    help="Skip slow model loading (use for testing the script itself)")
+parser.add_argument(
+    "--model",
+    choices=["asr", "translation", "notes", "all"],
+    default="all",
+    help="Which model to evaluate (default: all)",
+)
+parser.add_argument(
+    "--audio",
+    type=str,
+    default=r"C:\Users\udaya\Downloads\test01_20s.wav",
+    help="Path to a WAV/audio file for custom ASR evaluation",
+)
+parser.add_argument(
+    "--ref",
+    type=str,
+    default="Dancing in the masquerade, idle truth in plain sight jaded, pop, roll, click, shot, who will I be today or not? But such a tide as moving seems asleep, too full for sound and foam, when that witch drew from out the boundless deep turns again home, twilight and evening bell and after that",
+    help="Reference transcription for the custom audio file",
+)
+parser.add_argument(
+    "--report-json",
+    type=str,
+    default=None,
+    help="Save full evaluation report as JSON to this path",
+)
+parser.add_argument(
+    "--skip-load",
+    action="store_true",
+    help="Skip slow model loading (use for testing the script itself)",
+)
 args = parser.parse_args()
 
 
@@ -48,27 +68,27 @@ args = parser.parse_args()
 # Translation samples — Kannada/Hindi → English reference pairs
 TRANSLATION_SAMPLES_KN = [
     {
-        "source":    "ಇಂದಿನ ತರಗತಿಯಲ್ಲಿ ನಾವು ಯಂತ್ರ ಕಲಿಕೆಯ ಮೂಲ ತತ್ವಗಳನ್ನು ಕಲಿಯುತ್ತೇವೆ.",
+        "source": "ಇಂದಿನ ತರಗತಿಯಲ್ಲಿ ನಾವು ಯಂತ್ರ ಕಲಿಕೆಯ ಮೂಲ ತತ್ವಗಳನ್ನು ಕಲಿಯುತ್ತೇವೆ.",
         "reference": "In today's class we will learn the basic principles of machine learning.",
-        "src_lang":  "kn",
+        "src_lang": "kn",
     },
     {
-        "source":    "ಗಣಕಯಂತ್ರ ವಿಜ್ಞಾನದಲ್ಲಿ ಅಲ್ಗಾರಿದಮ್ ಬಹಳ ಮುಖ್ಯ.",
+        "source": "ಗಣಕಯಂತ್ರ ವಿಜ್ಞಾನದಲ್ಲಿ ಅಲ್ಗಾರಿದಮ್ ಬಹಳ ಮುಖ್ಯ.",
         "reference": "Algorithm is very important in computer science.",
-        "src_lang":  "kn",
+        "src_lang": "kn",
     },
 ]
 
 TRANSLATION_SAMPLES_HI = [
     {
-        "source":    "आज हम मशीन लर्निंग के बुनियादी सिद्धांत सीखेंगे।",
+        "source": "आज हम मशीन लर्निंग के बुनियादी सिद्धांत सीखेंगे।",
         "reference": "Today we will learn the basic principles of machine learning.",
-        "src_lang":  "hi",
+        "src_lang": "hi",
     },
     {
-        "source":    "डेटा साइंस में सांख्यिकी बहुत महत्वपूर्ण है।",
+        "source": "डेटा साइंस में सांख्यिकी बहुत महत्वपूर्ण है।",
         "reference": "Statistics is very important in data science.",
-        "src_lang":  "hi",
+        "src_lang": "hi",
     },
 ]
 
@@ -122,8 +142,10 @@ NOTES_SAMPLES = [
 #  Synthetic WAV generator (440 Hz sine wave — no audio file needed)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _make_synthetic_wav(duration_s: float = 4.0, freq: float = 440.0,
-                        sample_rate: int = 16000) -> str:
+
+def _make_synthetic_wav(
+    duration_s: float = 4.0, freq: float = 440.0, sample_rate: int = 16000
+) -> str:
     """
     Write a short sine-wave WAV to a temp file.
     Used as a placeholder when no real audio test files are available.
@@ -134,7 +156,7 @@ def _make_synthetic_wav(duration_s: float = 4.0, freq: float = 440.0,
     tmp_path = tmp.name
 
     # WAV header
-    n_bytes    = n_samples * 2             # 16-bit PCM = 2 bytes per sample
+    n_bytes = n_samples * 2  # 16-bit PCM = 2 bytes per sample
     data_chunk = n_samples * 2
     with open(tmp_path, "wb") as f:
         # RIFF header
@@ -143,13 +165,13 @@ def _make_synthetic_wav(duration_s: float = 4.0, freq: float = 440.0,
         f.write(b"WAVE")
         # fmt  chunk
         f.write(b"fmt ")
-        f.write(struct.pack("<I", 16))           # chunk size
-        f.write(struct.pack("<H", 1))            # PCM
-        f.write(struct.pack("<H", 1))            # mono
+        f.write(struct.pack("<I", 16))  # chunk size
+        f.write(struct.pack("<H", 1))  # PCM
+        f.write(struct.pack("<H", 1))  # mono
         f.write(struct.pack("<I", sample_rate))
         f.write(struct.pack("<I", sample_rate * 2))  # byte rate
-        f.write(struct.pack("<H", 2))            # block align
-        f.write(struct.pack("<H", 16))           # bits per sample
+        f.write(struct.pack("<H", 2))  # block align
+        f.write(struct.pack("<H", 16))  # bits per sample
         # data chunk
         f.write(b"data")
         f.write(struct.pack("<I", data_chunk))
@@ -165,22 +187,31 @@ def _make_synthetic_wav(duration_s: float = 4.0, freq: float = 440.0,
 #  Main
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def main():
     from ml.evaluator import (
-        ASRSample, TranslationSample, NotesSample,
-        evaluate_asr, evaluate_translation, evaluate_notes,
-        build_report, print_report, save_report_json,
+        ASRSample,
+        TranslationSample,
+        NotesSample,
+        evaluate_asr,
+        evaluate_translation,
+        evaluate_notes,
+        build_report,
+        print_report,
+        save_report_json,
         measure_pipeline_latency,
     )
 
-    asr_result          = None
-    translation_result  = None
-    notes_result        = None
-    pipeline_latency    = None
-    synth_wavs          = []      # track temp files to clean up
+    asr_result = None
+    translation_result = None
+    notes_result = None
+    pipeline_latency = None
+    synth_wavs = []  # track temp files to clean up
 
     if args.skip_load:
-        print("[Eval] --skip-load: skipping model loading. Showing metric report template only.")
+        print(
+            "[Eval] --skip-load: skipping model loading. Showing metric report template only."
+        )
         report = build_report(None, None, None)
         print_report(report)
         return
@@ -189,20 +220,22 @@ def main():
     print("\n[Eval] Loading models… (this may take 30–60 s on first run)")
     t_load = time.perf_counter()
 
-    from ml.transcriber     import Transcriber
-    from ml.model_registry  import load_qwen_model
+    from ml.transcriber import Transcriber
+    from ml.model_registry import load_qwen_model
 
-    whisper_id   = os.getenv("WHISPER_MODEL_ID",   "udayakumar8214/whisper-classroom-kn-hi-en")
-    trans_id     = os.getenv("TRANS_MODEL_ID",     "Helsinki-NLP/opus-mt-mul-en")
+    whisper_id = os.getenv(
+        "WHISPER_MODEL_ID", "udayakumar8214/whisper-classroom-kn-hi-en"
+    )
+    trans_id = os.getenv("TRANS_MODEL_ID", "Helsinki-NLP/opus-mt-mul-en")
 
     transcriber = Transcriber(whisper_id, trans_id)
     load_qwen_model()
-    structurer  = None
+    structurer = None
     print(f"[Eval] Models loaded in {time.perf_counter() - t_load:.1f}s\n")
 
-    run_asr    = args.model in ("asr",   "all")
-    run_trans  = args.model in ("translation", "all")
-    run_notes  = args.model in ("notes", "all")
+    run_asr = args.model in ("asr", "all")
+    run_trans = args.model in ("translation", "all")
+    run_notes = args.model in ("notes", "all")
 
     # ─────────────────────────────────────────────────────────────
     #  ASR Evaluation
@@ -214,11 +247,13 @@ def main():
 
         if args.audio and args.ref:
             # User provided a real audio file + ground truth
-            asr_samples = [ASRSample(
-                audio_path  = args.audio,
-                reference   = args.ref,
-                language    = "en",
-            )]
+            asr_samples = [
+                ASRSample(
+                    audio_path=args.audio,
+                    reference=args.ref,
+                    language="en",
+                )
+            ]
             print(f"  Using custom audio: {args.audio}")
         else:
             # Use a synthetic WAV (sine wave) as a smoke-test
@@ -226,14 +261,18 @@ def main():
             # Replace with real audio files for meaningful WER numbers.
             print("  ⚠  No --audio / --ref provided.")
             print("     Generating a 4-second synthetic tone for latency/RTF only.")
-            print("     WER on synthetic audio is meaningless — provide real audio for WER.\n")
+            print(
+                "     WER on synthetic audio is meaningless — provide real audio for WER.\n"
+            )
             synth = _make_synthetic_wav(duration_s=4.0)
             synth_wavs.append(synth)
-            asr_samples = [ASRSample(
-                audio_path = synth,
-                reference  = "",   # empty reference — WER won't be computed
-                language   = "en",
-            )]
+            asr_samples = [
+                ASRSample(
+                    audio_path=synth,
+                    reference="",  # empty reference — WER won't be computed
+                    language="en",
+                )
+            ]
 
         asr_result = evaluate_asr(transcriber, asr_samples)
 
@@ -246,13 +285,16 @@ def main():
         print("━" * 60)
 
         from ml.evaluator import TranslationSample
+
         samples = []
         for s in TRANSLATION_SAMPLES_KN + TRANSLATION_SAMPLES_HI:
-            samples.append(TranslationSample(
-                source_text = s["source"],
-                reference   = s["reference"],
-                src_lang    = s["src_lang"],
-            ))
+            samples.append(
+                TranslationSample(
+                    source_text=s["source"],
+                    reference=s["reference"],
+                    src_lang=s["src_lang"],
+                )
+            )
         translation_result = evaluate_translation(transcriber, samples)
 
     # ─────────────────────────────────────────────────────────────
@@ -264,10 +306,11 @@ def main():
         print("━" * 60)
 
         from ml.evaluator import NotesSample
+
         samples = [
             NotesSample(
-                input_transcript = s["transcript"],
-                reference_notes  = s["reference"],
+                input_transcript=s["transcript"],
+                reference_notes=s["reference"],
             )
             for s in NOTES_SAMPLES
         ]
@@ -277,7 +320,7 @@ def main():
     #  Pipeline latency (end-to-end on one clip)
     # ─────────────────────────────────────────────────────────────
     if args.model == "all":
-        synth = _make_synthetic_wav(duration_s=25.0)   # 25 s clip
+        synth = _make_synthetic_wav(duration_s=25.0)  # 25 s clip
         synth_wavs.append(synth)
         print("\n[Eval] Measuring end-to-end pipeline latency (25 s clip)…")
         pipeline_latency = measure_pipeline_latency(transcriber, structurer, synth)
@@ -286,7 +329,9 @@ def main():
     # ─────────────────────────────────────────────────────────────
     #  Report
     # ─────────────────────────────────────────────────────────────
-    report = build_report(asr_result, translation_result, notes_result, pipeline_latency)
+    report = build_report(
+        asr_result, translation_result, notes_result, pipeline_latency
+    )
     print_report(report)
 
     if args.report_json:

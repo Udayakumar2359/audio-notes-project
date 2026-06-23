@@ -942,6 +942,63 @@ def get_status(
     return {"job_id": job_id, "status": record.status, "filename": record.filename}
 
 
+@app.delete("/audio/{job_id}/cancel", tags=["Audio"])
+def cancel_job(
+    job_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Cancel an in-progress processing job and delete the uploaded file + DB record.
+    Safe to call at any pipeline stage.
+    """
+    record = (
+        db.query(AudioFile)
+        .filter(
+            AudioFile.id == job_id,
+            AudioFile.user_id == current_user.id,
+        )
+        .first()
+    )
+    if not record:
+        raise HTTPException(404, "Job not found.")
+
+    # ── Signal the pipeline worker to stop ────────────────────
+    from ml.pipeline import CANCELLED_JOBS
+    CANCELLED_JOBS.add(job_id)
+
+    # ── Delete the uploaded audio file from disk ──────────────
+    file_path = record.file_path
+    if file_path:
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                print(f"[Cancel] Deleted uploaded file: {file_path}")
+            # Also try to remove derived temp files
+            base = os.path.splitext(file_path)[0]
+            for suffix in ("_raw.wav", "_clean.wav"):
+                p = base + suffix
+                if os.path.isfile(p):
+                    os.remove(p)
+            chunk_dir = base + "_chunks"
+            if os.path.isdir(chunk_dir):
+                shutil.rmtree(chunk_dir, ignore_errors=True)
+        except Exception as e:
+            print(f"[Cancel] File cleanup warning: {e}")
+
+    # ── Delete the DB record (cascades to chunks/transcriptions) ─
+    try:
+        db.delete(record)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(500, f"DB cleanup failed: {e}")
+
+    print(f"[Cancel] Job {job_id} cancelled and deleted by user {current_user.id}")
+    return {"message": "Job cancelled and file deleted successfully.", "job_id": job_id}
+
+
+
 @app.get("/audio/{job_id}/notes", tags=["Audio"])
 def get_notes(
     job_id: int,
@@ -2089,7 +2146,7 @@ def view_shared_note(token: str, db: Session = Depends(get_db)):
 
 
 # ─────────────────────────────────────────────────────────────
-#  FEATURE 4 — TRANSLATION (Ollama local model)
+#  FEATURE 4 — TRANSLATION (Google Translate via googletrans)
 #  POST /notes/{id}/translate  body: {target_lang: "hi"|"kn"…}
 # ─────────────────────────────────────────────────────────────
 
@@ -2112,7 +2169,7 @@ def translate_note(
     Returns a Server-Sent Events stream of translated tokens.
     Supports: hi (Hindi), kn (Kannada)
     """
-    from ml.translator import translate_notes_stream, LANGUAGES
+    from ml.googletrans_translator import translate_notes_stream, LANGUAGES
 
     if payload.target_lang not in LANGUAGES:
         raise HTTPException(
@@ -2189,7 +2246,7 @@ def translate_note(
 @app.get("/translation/languages", tags=["Translation"])
 def get_supported_languages():
     """List all supported translation target languages."""
-    from ml.translator import LANGUAGES
+    from ml.googletrans_translator import LANGUAGES
 
     return {"languages": [{"code": k, "name": v} for k, v in LANGUAGES.items()]}
 

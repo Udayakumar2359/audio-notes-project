@@ -54,7 +54,7 @@ export default function Profile() {
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    navigate('/login')
+    navigate('/')
   }
 
   const isGoogleUser = user && !user.hashed_password && user.google_id

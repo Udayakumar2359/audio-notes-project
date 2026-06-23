@@ -201,7 +201,7 @@ export default function Login() {
               </div>
 
               <button id="login-btn" type="submit" className="btn btn-primary btn-full btn-lg" disabled={step1Loading} style={{ marginTop: '0.5rem' }}>
-                {step1Loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Checking…</> : 'Continue →'}
+                {step1Loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Checking…</> : 'Continue'}
               </button>
 
               <p style={{ textAlign: 'center', fontSize: '0.8125rem', marginTop: '0.875rem' }}>

@@ -106,7 +106,7 @@ def load_qwen_model():
                 _QWEN_ID,
                 token=hf_token,
                 quantization_config=bnb_config,
-                device_map="auto",
+                device_map="cuda",
                 trust_remote_code=True,
             )
         else:

@@ -64,6 +64,7 @@ export default function Upload() {
   const [status, setStatus]     = useState('');
   const [error, setError]       = useState('');
   const [uploading, setUploading] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const pollRef  = useRef(null);
   const navigate = useNavigate();
@@ -135,6 +136,26 @@ export default function Upload() {
         setUploading(false);
       }
     }, 3000);
+  };
+
+  const handleCancel = async () => {
+    if (!jobId || cancelling) return;
+    setCancelling(true);
+    clearInterval(pollRef.current);
+    try {
+      await api.delete(`/audio/${jobId}/cancel`);
+    } catch (err) {
+      // If 404 (already gone) that's fine — still reset UI
+      console.warn('Cancel request:', err?.response?.data?.detail || err.message);
+    }
+    // Reset UI back to the upload form
+    setJobId(null);
+    setJobName('');
+    setStatus('');
+    setFile(null);
+    setUploading(false);
+    setCancelling(false);
+    setError('');
   };
 
   const stageIndex  = PIPELINE_STAGES.findIndex(s => s.key === status?.split(':')[0]);
@@ -396,9 +417,53 @@ export default function Upload() {
                 );
               })}
             </div>
+
+            {/* Cancel button — only shown while processing */}
+            {isProcessing && (
+              <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+                <button
+                  id="cancel-processing-btn"
+                  onClick={handleCancel}
+                  disabled={cancelling}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.55rem 1.4rem', borderRadius: 'var(--radius-sm)',
+                    fontSize: '0.875rem', fontWeight: 700, cursor: cancelling ? 'not-allowed' : 'pointer',
+                    border: '1.5px solid var(--error, #ef4444)',
+                    background: cancelling ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.1)',
+                    color: 'var(--error, #ef4444)',
+                    transition: 'all 0.18s ease',
+                    opacity: cancelling ? 0.7 : 1,
+                  }}
+                  onMouseOver={e => { if (!cancelling) e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; }}
+                  onMouseOut={e => { if (!cancelling) e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
+                >
+                  {cancelling ? (
+                    <>
+                      <span style={{
+                        width: 14, height: 14, borderRadius: '50%',
+                        border: '2px solid var(--error, #ef4444)',
+                        borderTopColor: 'transparent',
+                        display: 'inline-block',
+                        animation: 'spin 0.7s linear infinite',
+                      }} />
+                      Cancelling…
+                    </>
+                  ) : (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                        <rect x="3" y="3" width="8" height="8" rx="1.5" fill="currentColor"/>
+                      </svg>
+                      Stop Processing
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
     </div>
   );
 }
+

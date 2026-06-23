@@ -40,14 +40,28 @@ if _use_sqlite:
         connect_args={"check_same_thread": False},  # required for SQLite + threads
     )
 else:
-    print("[DB] PostgreSQL cloud (Supabase)")
-    engine = create_engine(
-        DATABASE_URL,
-        pool_pre_ping=True,      # health-check connections before use
-        pool_size=5,
-        max_overflow=10,
-        connect_args={"sslmode": "require"},  # Supabase requires SSL
-    )
+    _is_pooler = "pooler.supabase.com" in DATABASE_URL
+    if _is_pooler:
+        print("[DB] PostgreSQL cloud — Supabase Connection Pooler (PgBouncer)")
+        # Append sslmode to the URL so psycopg2 picks it up without connect_args
+        if "sslmode=" not in DATABASE_URL:
+            DATABASE_URL += "?sslmode=require"
+        engine = create_engine(
+            DATABASE_URL,
+            pool_pre_ping=False,   # PgBouncer session mode handles keep-alive
+            pool_size=5,
+            max_overflow=10,
+        )
+    else:
+        print("[DB] PostgreSQL cloud (Supabase direct)")
+        engine = create_engine(
+            DATABASE_URL,
+            pool_pre_ping=True,
+            pool_size=5,
+            max_overflow=10,
+            connect_args={"sslmode": "require"},  # Supabase requires SSL
+        )
+
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

@@ -21,6 +21,59 @@ function stripMd(text = '') {
     .trim();
 }
 
+// ── Smart summary / paragraph formatter ─────────────────────
+function FormattedText({ text = '' }) {
+  if (!text) return null;
+
+  // Split into lines, group consecutive bullets together
+  const rawLines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const blocks = [];
+  let bulletGroup = [];
+
+  const flushBullets = () => {
+    if (bulletGroup.length) {
+      blocks.push({ type: 'bullets', items: [...bulletGroup] });
+      bulletGroup = [];
+    }
+  };
+
+  for (const line of rawLines) {
+    const isBullet = /^[•\-*]\s+/.test(line);
+    if (isBullet) {
+      bulletGroup.push(line.replace(/^[•\-*]\s+/, ''));
+    } else {
+      flushBullets();
+      blocks.push({ type: 'para', text: line });
+    }
+  }
+  flushBullets();
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {blocks.map((block, i) => {
+        if (block.type === 'bullets') {
+          return (
+            <ul key={i} style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {block.items.map((item, j) => (
+                <li key={j} style={{ display: 'flex', gap: '0.625rem', alignItems: 'flex-start' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', flexShrink: 0, marginTop: '0.6rem' }} />
+                  <span style={{ fontSize: '0.9375rem', lineHeight: 1.8, color: 'var(--text-secondary)' }}>{item}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={i} style={{ margin: 0, fontSize: '0.9375rem', lineHeight: 1.85, color: 'var(--text-secondary)' }}>
+            {block.text}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+
 // ── Section label with accent bar ───────────────────────────
 function SectionLabel({ children }) {
   return (
@@ -128,6 +181,8 @@ function LangBadge({ lang }) {
 const LANGUAGES = [
   { code: 'hi', name: '🇮🇳 Hindi' },
   { code: 'kn', name: '🇮🇳 Kannada' },
+  { code: 'te', name: '🇮🇳 Telugu' },
+  { code: 'ta', name: '🇮🇳 Tamil'  },
 ];
 
 export default function NotesViewer() {
@@ -489,9 +544,7 @@ export default function NotesViewer() {
                   {notes.summary && (
                     <Panel style={{ borderLeft: '3px solid var(--brand)', marginBottom: '1.5rem' }}>
                       <SectionLabel>Overview</SectionLabel>
-                      <p style={{ fontSize: '0.9375rem', lineHeight: 1.85, color: 'var(--text-secondary)', margin: 0 }}>
-                        {notes.summary}
-                      </p>
+                      <FormattedText text={notes.summary} />
                     </Panel>
                   )}
 
@@ -515,9 +568,7 @@ export default function NotesViewer() {
                             }}>{idx + 1}</span>
                             {sec.heading}
                           </h3>
-                          <p style={{ fontSize: '0.9375rem', lineHeight: 1.85, color: 'var(--text-secondary)', margin: '0 0 0.875rem' }}>
-                            {sec.definition || sec.content}
-                          </p>
+                          <FormattedText text={sec.definition || sec.content} />
                           {sec.key_points?.length > 0 && (
                             <div style={{
                               background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)',
@@ -686,7 +737,7 @@ export default function NotesViewer() {
                   <div style={{ marginBottom: '1.5rem' }}>
                     <h2 style={{ fontFamily: 'Geist, sans-serif', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Translate Transcript</h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
-                      Translates your full English transcript to Hindi or Kannada using local Ollama AI.
+                      Translate your AI summary into Hindi, Kannada, Telugu or Tamil using Google Translate.
                     </p>
                   </div>
 
@@ -835,30 +886,8 @@ export default function NotesViewer() {
 
               {/* ══ AI CHAT VIEW ════════════════════════════════ */}
               {activeView === 'ai' && (
-                <div className="nv-panel" style={{ height: 'calc(100vh - 180px)', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 'var(--radius-sm)',
-                      background: 'var(--gradient-primary)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0, boxShadow: 'var(--glow-sm)',
-                      fontFamily: 'Geist, sans-serif', fontWeight: 800,
-                      color: '#fff', fontSize: '0.8rem', letterSpacing: '-0.02em',
-                    }}>AI</div>
-                    <div>
-                      <div style={{ fontFamily: 'Geist, sans-serif', fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>AI Study Agent</div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>Ask anything about this lecture</div>
-                    </div>
-                  </div>
-                  <div style={{
-                    flex: 1, overflow: 'hidden',
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--glass-border)',
-                    borderRadius: 'var(--radius-lg)',
-                    backdropFilter: 'var(--glass-blur)',
-                  }}>
-                    <AgentChatPanel jobId={jobId} embedded />
-                  </div>
+                <div className="nv-panel" style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
+                  <AgentChatPanel jobId={jobId} />
                 </div>
               )}
 

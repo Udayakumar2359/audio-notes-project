@@ -26,9 +26,9 @@
   --brand-dark:       #4f46e5;
   --brand-bg:         rgba(99, 102, 241, 0.12);
   --brand-border:     rgba(99, 102, 241, 0.3);
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  --gradient-text:    linear-gradient(135deg, #c0c1ff 0%, #f0abfc 100%);
-  --gradient-hero:    linear-gradient(135deg, #6366f1, #a855f7, #f472b6);
+  --gradient-primary: var(--brand);
+  --gradient-text:    var(--brand-light);
+  --gradient-hero:    var(--brand);
   --glow-primary:     0 0 20px rgba(99, 102, 241, 0.35);
   --glow-sm:          0 0 8px rgba(99, 102, 241, 0.25);
 
@@ -104,9 +104,9 @@
   --brand-dark:     #4f46e5;
   --brand-bg:       rgba(99, 102, 241, 0.08);
   --brand-border:   rgba(99, 102, 241, 0.25);
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  --gradient-text:    linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  --gradient-hero:    linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  --gradient-primary: var(--brand);
+  --gradient-text:    var(--brand-dark);
+  --gradient-hero:    var(--brand);
   --glow-primary:   0 0 20px rgba(99, 102, 241, 0.2);
   --glow-sm:        0 0 8px rgba(99, 102, 241, 0.15);
 
@@ -203,10 +203,7 @@ strong { font-weight: 600; }
 
 /* ── Gradient text ──────────────────────────────────────────── */
 .text-gradient {
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--gradient-text);
 }
 
 /* ── Layout ─────────────────────────────────────────────────── */
@@ -323,17 +320,21 @@ strong { font-weight: 600; }
 
 /* ── Theme toggle button ────────────────────────────────────── */
 .theme-toggle {
-  width: 38px;
   height: 38px;
+  padding: 0 0.875rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--glass-border);
   background: var(--bg-glass);
   color: var(--text-muted);
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
   transition: all var(--ease);
   backdrop-filter: var(--glass-blur-sm);
   flex-shrink: 0;
@@ -483,32 +484,7 @@ strong { font-weight: 600; }
   overflow: hidden;
 }
 
-/* ambient blobs for auth pages */
-.auth-page::before,
-.auth-page::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  opacity: 0.35;
-}
 
-.auth-page::before {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, var(--brand) 0%, transparent 70%);
-  top: -200px;
-  left: -150px;
-}
-
-.auth-page::after {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, var(--brand-2) 0%, transparent 70%);
-  bottom: -150px;
-  right: -100px;
-}
 
 .auth-card {
   width: 100%;
@@ -1046,19 +1022,19 @@ strong { font-weight: 600; }
 
 .lv2-blob-1 {
   width: 700px; height: 700px;
-  background: radial-gradient(circle, #6366f1, transparent 70%);
+  background: #6366f1;
   top: -250px; left: -200px;
 }
 
 .lv2-blob-2 {
   width: 550px; height: 550px;
-  background: radial-gradient(circle, #a855f7, transparent 70%);
+  background: #a855f7;
   top: 40%; right: -150px;
 }
 
 .lv2-blob-3 {
   width: 400px; height: 400px;
-  background: radial-gradient(circle, #f472b6, transparent 70%);
+  background: #f472b6;
   bottom: 0; left: 30%;
   opacity: 0.15;
 }
@@ -1497,7 +1473,7 @@ strong { font-weight: 600; }
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 60%);
+  background: rgba(255,255,255,0.03);
 }
 
 .lv2-cta-section h2 {

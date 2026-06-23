@@ -6,28 +6,30 @@ import { useTheme } from '../context/ThemeContext';
 import api, { saveSession } from '../api';
 
 const FEATURES = [
-  { title: 'Any Audio Format',     desc: 'Upload MP3, WAV, M4A, OGG, FLAC, or WebM. Format conversion is automatic.' },
-  { title: 'Multilingual Support', desc: 'Native support for Kannada, Hindi, and English — including code-switched lectures.' },
-  { title: 'Parallel Processing',  desc: 'Audio is split into chunks and transcribed in parallel — results in minutes.' },
-  { title: 'Smart Cleaning',       desc: 'Removes filler words, duplicates, background noise, and transcription artifacts.' },
-  { title: 'Structured Notes',     desc: 'T5 AI model organizes your transcript into key points, sections, and a summary.' },
-  { title: 'Export Anywhere',      desc: 'Download your notes as TXT, DOCX (Word), or PDF.' },
+  { title: 'Any Audio Format', desc: 'Upload MP3, WAV, M4A, OGG, FLAC, or WebM. Automatic format conversion with no setup required.' },
+  { title: 'Multilingual Support', desc: 'Native support for Kannada, Hindi, and English — including code-switched and mixed-language lectures.' },
+  { title: 'Parallel Transcription', desc: 'Audio is split into chunks and transcribed in parallel using Whisper — faster results on long recordings.' },
+  { title: 'Smart Cleaning', desc: 'Removes filler words, repeated phrases, background noise artifacts, and hallucinations automatically.' },
+  { title: 'AI-Structured Notes', desc: 'Qwen LLM organizes your transcript into titled sections, key points, and a clean academic summary.' },
+  { title: 'AI Study Assistant', desc: 'Chat with your lecture using the built-in AI agent — ask questions, get summaries, or quiz yourself.' },
+  { title: 'Share & Collaborate', desc: 'Generate a shareable public link for any lecture note — no login required for the recipient.' },
+  { title: 'Export Anywhere', desc: 'Download your notes as TXT, DOCX (Word), or PDF with a single click.' },
 ];
 
 const HOW_IT_WORKS = [
-  { num: '01', title: 'Upload Audio', desc: 'Drag & drop your lecture recording in any format.' },
-  { num: '02', title: 'Denoise & Convert', desc: 'Audio is converted to 16 kHz WAV and background noise is removed.' },
-  { num: '03', title: 'Transcribe', desc: 'Whisper ASR converts speech to text in parallel chunks.' },
-  { num: '04', title: 'Detect & Translate', desc: 'Language is detected per segment. Non-English is translated to English.' },
-  { num: '05', title: 'Clean', desc: 'Fillers, duplicates, and hallucinations are removed from the text.' },
-  { num: '06', title: 'Structure Notes', desc: 'T5 creates key points, sections, and a clean academic summary.' },
+  { num: '01', title: 'Upload Audio', desc: 'Drag & drop your lecture recording in any format — MP3, WAV, M4A, FLAC, OGG, or WebM.' },
+  { num: '02', title: 'Denoise & Convert', desc: 'Audio is converted to 16 kHz mono WAV and background noise is suppressed for cleaner transcription.' },
+  { num: '03', title: 'Parallel Transcription', desc: 'Whisper ASR processes audio in parallel chunks for fast, accurate multilingual transcription.' },
+  { num: '04', title: 'Language Detection', desc: 'Each segment is language-detected. Non-English segments are translated to English automatically.' },
+  { num: '05', title: 'Text Cleaning', desc: 'Filler words, repeated phrases, and ASR hallucinations are removed to produce clean readable text.' },
+  { num: '06', title: 'AI Note Generation', desc: 'Qwen LLM structures the transcript into sections, key points, and a concise academic summary.' },
 ];
 
 const STATS = [
   { val: '90 min', label: 'Max audio length' },
-  { val: '3',      label: 'Languages' },
-  { val: '12×',    label: 'Parallel speed' },
-  { val: '3',      label: 'Export formats' },
+  { val: '3', label: 'Languages supported' },
+  { val: '6', label: 'Pipeline steps' },
+  { val: '3', label: 'Export formats' },
 ];
 
 // App mockup preview
@@ -282,7 +284,7 @@ function LoginModal({ onClose, onSwitchToRegister }) {
               />
             </div>
             <button type="submit" disabled={loading} className="btn btn-primary btn-full btn-lg" style={{ marginTop: '0.5rem' }}>
-              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Checking…</> : 'Continue →'}
+              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Checking…</> : 'Continue'}
             </button>
             <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
               No account?{' '}
@@ -467,7 +469,7 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
               />
             </div>
             <button type="submit" disabled={loading} className="btn btn-primary btn-full btn-lg" style={{ marginTop: '0.5rem' }}>
-              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Creating…</> : 'Create Account →'}
+              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Creating…</> : 'Create Account'}
             </button>
             <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
               Have an account?{' '}
@@ -515,17 +517,14 @@ export default function Landing() {
 
   return (
     <div className="landing-v2">
-      {/* Ambient blobs */}
-      <div className="lv2-blob lv2-blob-1" />
-      <div className="lv2-blob lv2-blob-2" />
-      <div className="lv2-blob lv2-blob-3" />
+
 
       {/* ── Navbar ── */}
       <nav className="lv2-nav">
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
           <div style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 900, color: '#fff', boxShadow: 'var(--glow-sm)', fontFamily: 'Geist, sans-serif', letterSpacing: '-0.02em' }}>AN</div>
           <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            AudioNotes <span style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>AI</span>
+            AudioNotes <span style={{ color: 'var(--gradient-primary)' }}>AI</span>
           </span>
         </Link>
 
@@ -546,11 +545,11 @@ export default function Landing() {
           </button>
 
           {isLoggedIn ? (
-            <Link to="/dashboard" className="lv2-btn-primary">Go to Dashboard →</Link>
+            <Link to="/dashboard" className="lv2-btn-primary">Go to Dashboard</Link>
           ) : (
             <>
               <button onClick={() => setModal('login')} className="lv2-btn-ghost">Sign In</button>
-              <button onClick={() => setModal('register')} className="lv2-btn-primary">Get Started →</button>
+              <button onClick={() => setModal('register')} className="lv2-btn-primary">Get Started</button>
             </>
           )}
         </div>
@@ -570,15 +569,16 @@ export default function Landing() {
 
           <p className="lv2-desc">
             Upload any lecture recording in Kannada, Hindi, or English.
-            Get AI-generated academic notes with key points, summaries,
-            and full transcripts — ready to download in seconds.
+            AudioNotes AI transcribes, cleans, and structures your lecture
+            into academic notes — with key points, sections, and summaries
+            ready to download in minutes.
           </p>
 
           <div className="lv2-cta-row">
             {isLoggedIn ? (
               <Link to="/upload" className="lv2-btn-primary" style={{ fontSize: '1rem', padding: '0.75rem 1.75rem' }}>Upload Lecture Audio Now</Link>
             ) : (
-              <button onClick={() => setModal('register')} className="lv2-btn-primary" style={{ fontSize: '1rem', padding: '0.75rem 1.75rem', cursor: 'pointer' }}>Get Started Free →</button>
+              <button onClick={() => setModal('register')} className="lv2-btn-primary" style={{ fontSize: '1rem', padding: '0.75rem 1.75rem', cursor: 'pointer' }}>Get Started Free</button>
             )}
             {isLoggedIn ? (
               <Link to="/dashboard" className="lv2-btn-ghost">View Dashboard</Link>
@@ -592,7 +592,7 @@ export default function Landing() {
             <div className="lv2-avatars">
               {['U', 'A', 'R', 'K'].map((i, idx) => (
                 <div key={idx} className="lv2-avatar"
-                  style={{ background: ['linear-gradient(135deg,#6366f1,#818cf8)', 'linear-gradient(135deg,#a855f7,#c084fc)', 'linear-gradient(135deg,#059669,#34d399)', 'linear-gradient(135deg,#d97706,#fbbf24)'][idx] }}>
+                  style={{ background: ['#6366f1', '#a855f7', '#059669', '#d97706'][idx] }}>
                   {i}
                 </div>
               ))}
@@ -621,7 +621,7 @@ export default function Landing() {
           <div className="section-header">
             <div className="section-tag">How It Works</div>
             <h2>Six steps from audio to organized notes</h2>
-            <p>Our pipeline processes every second of your lecture through a state-of-the-art AI stack — automatically.</p>
+            <p>Every lecture goes through a fully automated AI pipeline — upload once and get clean, structured notes in minutes.</p>
           </div>
           <div className="how-it-works">
             {HOW_IT_WORKS.map((step) => (
@@ -640,7 +640,7 @@ export default function Landing() {
         <div className="container">
           <div className="section-header">
             <div className="section-tag">Features</div>
-            <h2>Everything you need for better study</h2>
+            <h2>Everything you need, built in</h2>
           </div>
           <div className="features-grid">
             {FEATURES.map((f) => (
@@ -656,13 +656,13 @@ export default function Landing() {
       {/* ── CTA Banner ── */}
       <section className="lv2-cta-section">
         <div className="container">
-          <h2>Ready to stop missing lecture details?</h2>
-          <p>Create a free account and upload your first lecture in under 2 minutes.</p>
+          <h2>Turn your lectures into structured notes — instantly.</h2>
+          <p>Create a free account, upload your lecture audio, and get AI-generated notes in minutes. No setup required.</p>
           {isLoggedIn ? (
             <Link to="/upload" className="lv2-cta-btn-white">Upload a Lecture</Link>
           ) : (
             <button onClick={() => setModal('register')} className="lv2-cta-btn-white" style={{ cursor: 'pointer' }}>
-              Create Free Account →
+              Create Free Account
             </button>
           )}
         </div>
@@ -676,7 +676,7 @@ export default function Landing() {
             <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9375rem' }}>AudioNotes AI</span>
           </div>
           <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-            Built by Udaya Kumar · Models: Whisper + T5 on HuggingFace
+            Built by Udaya Kumar · Models: Whisper + Qwen via Ollama
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button onClick={() => setModal('login')} style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Sign In</button>

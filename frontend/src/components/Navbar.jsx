@@ -280,7 +280,7 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    navigate('/login', { replace: true })
+    navigate('/', { replace: true })
   }
 
   const navLinks = [
@@ -300,7 +300,7 @@ export default function Navbar() {
         <Link to="/dashboard" className="navbar-brand">
           <div className="logo-icon" style={{ fontSize: '0.8rem', fontWeight: 900, letterSpacing: '-0.03em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>AN</div>
           <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 700, letterSpacing: '-0.02em' }}>
-            AudioNotes <span style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>AI</span>
+            AudioNotes <span style={{ color: 'var(--gradient-primary)' }}>AI</span>
           </span>
         </Link>
 

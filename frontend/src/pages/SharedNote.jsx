@@ -15,22 +15,50 @@ function stripMd(text = '') {
     .trim();
 }
 
-function NotesParagraph({ text }) {
+function FormattedText({ text = '', baseColor = '#374151' }) {
   if (!text) return null;
-  const lines = text.split('\n').filter(l => l.trim());
+
+  const rawLines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const blocks = [];
+  let bulletGroup = [];
+
+  const flushBullets = () => {
+    if (bulletGroup.length) {
+      blocks.push({ type: 'bullets', items: [...bulletGroup] });
+      bulletGroup = [];
+    }
+  };
+
+  for (const line of rawLines) {
+    const clean    = stripMd(line);
+    const isBullet = /^[•\-*]\s*/.test(clean);
+    if (isBullet) {
+      bulletGroup.push(clean.replace(/^[•\-*]\s*/, ''));
+    } else {
+      flushBullets();
+      blocks.push({ type: 'para', text: clean });
+    }
+  }
+  flushBullets();
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-      {lines.map((line, i) => {
-        const clean    = stripMd(line);
-        const isBullet = clean.startsWith('•');
-        const isNum    = /^\d+[.)]\s/.test(clean);
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
+      {blocks.map((block, i) => {
+        if (block.type === 'bullets') {
+          return (
+            <ul key={i} style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {block.items.map((item, j) => (
+                <li key={j} style={{ display: 'flex', gap: '0.625rem', alignItems: 'flex-start' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#2563EB', flexShrink: 0, marginTop: '0.6rem' }} />
+                  <span style={{ fontSize: '0.9375rem', lineHeight: 1.8, color: baseColor }}>{item}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
         return (
-          <p key={i} style={{
-            margin: 0, paddingLeft: isBullet || isNum ? '1.25rem' : 0,
-            fontSize: '0.9375rem', lineHeight: 1.8, color: '#374151',
-            textIndent: isBullet || isNum ? '-1.1rem' : 0,
-          }}>
-            {clean}
+          <p key={i} style={{ margin: 0, fontSize: '0.9375rem', lineHeight: 1.85, color: baseColor }}>
+            {block.text}
           </p>
         );
       })}
@@ -123,9 +151,9 @@ export default function SharedNote() {
 
           {/* ── OVERVIEW — full LED summary paragraph ──────── */}
           {notes.summary && (
-            <div style={{ margin: '1.75rem 0 0', padding: '1.5rem 1.75rem', background: 'linear-gradient(135deg,#EFF6FF 0%,#F0F9FF 100%)', borderRadius: 12, border: '1px solid #BFDBFE', borderLeft: '4px solid #2563EB' }}>
+            <div style={{ margin: '1.75rem 0 0', padding: '1.5rem 1.75rem', background: '#EFF6FF', borderRadius: 12, border: '1px solid #BFDBFE', borderLeft: '4px solid #2563EB' }}>
               <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em', color: '#2563EB', textTransform: 'uppercase', marginBottom: '0.75rem' }}>📋 Overview</div>
-              <p style={{ fontSize: '1rem', lineHeight: 1.9, color: '#1E3A8A', margin: 0, fontWeight: 450 }}>{notes.summary}</p>
+              <FormattedText text={notes.summary} baseColor="#1E3A8A" />
             </div>
           )}
 
@@ -140,9 +168,7 @@ export default function SharedNote() {
                     {sec.heading}
                   </h3>
                   {/* Definition paragraph */}
-                  <p style={{ fontSize: '0.9375rem', lineHeight: 1.88, color: '#374151', margin: '0 0 1rem 0' }}>
-                    {sec.definition || sec.content}
-                  </p>
+                  <FormattedText text={sec.definition || sec.content} />
                   {/* Bullet key points */}
                   {sec.key_points?.length > 0 && (
                     <div style={{ background: '#FAFAFA', borderRadius: 8, border: '1px solid #F0F0F0', padding: '0.875rem 1.125rem' }}>
@@ -182,7 +208,7 @@ export default function SharedNote() {
             <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
               <details open>
                 <summary style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', color: '#10B981', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '0.75rem' }}>✨ Polished Transcript</summary>
-                <p style={{ fontSize: '0.875rem', lineHeight: 1.85, color: '#374151', whiteSpace: 'pre-wrap', margin: 0 }}>{notes.polished_transcript}</p>
+                <FormattedText text={notes.polished_transcript} />
               </details>
             </div>
           )}

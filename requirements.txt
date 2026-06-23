@@ -50,6 +50,9 @@ evaluate==0.4.2
 # Language Detection
 langdetect==1.0.9
 
+# Translation
+deep-translator==1.11.4
+
 # Utilities
 python-dotenv==1.0.1
 numpy==1.26.4

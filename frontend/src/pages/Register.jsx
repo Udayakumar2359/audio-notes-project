@@ -213,7 +213,7 @@ export default function Register() {
               </div>
 
               <button id="register-btn" type="submit" className="btn btn-primary btn-full btn-lg" disabled={step1Loading} style={{ marginTop: '0.5rem' }}>
-                {step1Loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Creating account…</> : 'Create Account →'}
+                {step1Loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Creating account…</> : 'Create Account'}
               </button>
 
               <p style={{ textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '1.25rem' }}>
