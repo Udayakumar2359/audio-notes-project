@@ -182,7 +182,7 @@ const LANGUAGES = [
   { code: 'hi', name: '🇮🇳 Hindi' },
   { code: 'kn', name: '🇮🇳 Kannada' },
   { code: 'te', name: '🇮🇳 Telugu' },
-  { code: 'ta', name: '🇮🇳 Tamil'  },
+  { code: 'ta', name: '🇮🇳 Tamil' },
 ];
 
 export default function NotesViewer() {
@@ -382,14 +382,14 @@ export default function NotesViewer() {
   const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const sideItems = [
-    { key: 'notes',      label: 'Notes'      },
+    { key: 'notes', label: 'Notes' },
     { key: 'transcript', label: 'Transcript' },
-    { key: 'translate',  label: 'Translate'  },
-    { key: 'edit',       label: 'Edit'       },
-    { key: 'share',      label: 'Share'      },
-    { key: 'ai',         label: 'AI Chat'    },
-    { key: 'summary',    label: 'AI Summary' },
-    { key: 'pdf',        label: 'Export PDF' },
+    { key: 'translate', label: 'Translate' },
+    { key: 'edit', label: 'Edit' },
+    { key: 'share', label: 'Share' },
+    { key: 'ai', label: 'AI Chat' },
+    { key: 'summary', label: 'AI Summary' },
+    { key: 'pdf', label: 'Export PDF' },
   ];
 
   return (
@@ -424,8 +424,8 @@ export default function NotesViewer() {
             marginBottom: '0.5rem',
             transition: 'all 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--brand)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--brand)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
           >
             ← Dashboard
           </Link>
@@ -485,17 +485,21 @@ export default function NotesViewer() {
               {sideItems.find(s => s.key === activeView)?.icon} {sideItems.find(s => s.key === activeView)?.label}
             </span>
             <div style={{ flex: 1 }} />
-            <button onClick={copyNotes} className="btn btn-ghost btn-sm">
-              {copied ? '✓ Copied' : 'Copy Notes'}
-            </button>
-            <div style={{ display: 'flex', gap: '0.375rem' }}>
-              {['txt', 'docx', 'pdf'].map(fmt => (
-                <button key={fmt} onClick={() => downloadFormat(fmt)} className="btn btn-ghost btn-sm"
-                  style={{ textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', letterSpacing: '0.04em', padding: '0.3rem 0.625rem' }}>
-                  {fmt}
+            {activeView === 'notes' && (
+              <>
+                <button onClick={copyNotes} className="btn btn-ghost btn-sm">
+                  {copied ? '✓ Copied' : 'Copy Notes'}
                 </button>
-              ))}
-            </div>
+                <div style={{ display: 'flex', gap: '0.375rem' }}>
+                  {['txt', 'docx', 'pdf'].map(fmt => (
+                    <button key={fmt} onClick={() => downloadFormat(fmt)} className="btn btn-ghost btn-sm"
+                      style={{ textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', letterSpacing: '0.04em', padding: '0.3rem 0.625rem' }}>
+                      {fmt}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             <Link to="/upload" className="btn btn-primary btn-sm">+ New Upload</Link>
           </div>
 
@@ -548,52 +552,11 @@ export default function NotesViewer() {
                     </Panel>
                   )}
 
-                  {/* Sections */}
-                  {notes.sections?.length > 0 && (
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <SectionLabel>Detailed Notes</SectionLabel>
-                      {notes.sections.map((sec, idx) => (
-                        <Panel key={idx} style={{ marginBottom: '0.875rem' }}>
-                          <h3 style={{
-                            display: 'flex', alignItems: 'center', gap: '0.75rem',
-                            fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)',
-                            marginBottom: '0.75rem', fontFamily: 'Geist, sans-serif',
-                          }}>
-                            <span style={{
-                              width: 26, height: 26, borderRadius: 7,
-                              background: 'var(--brand-bg)', border: '1px solid var(--brand-border)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '0.72rem', fontWeight: 800, color: 'var(--brand)', flexShrink: 0,
-                              fontFamily: 'JetBrains Mono, monospace',
-                            }}>{idx + 1}</span>
-                            {sec.heading}
-                          </h3>
-                          <FormattedText text={sec.definition || sec.content} />
-                          {sec.key_points?.length > 0 && (
-                            <div style={{
-                              background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)',
-                              border: '1px solid var(--border-subtle)', padding: '0.875rem 1rem',
-                            }}>
-                              <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--text-subtle)', textTransform: 'uppercase', marginBottom: '0.6rem', fontFamily: 'JetBrains Mono, monospace' }}>Key Points</div>
-                              <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                {sec.key_points.map((pt, pi) => (
-                                  <li key={pi} style={{ display: 'flex', gap: '0.625rem', alignItems: 'flex-start' }}>
-                                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', flexShrink: 0, marginTop: '0.55rem' }} />
-                                    <span style={{ fontSize: '0.875rem', lineHeight: 1.7, color: 'var(--text-secondary)' }}>{pt}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </Panel>
-                      ))}
-                    </div>
-                  )}
 
                   {/* Key Concepts */}
                   {notes.key_points?.length > 0 && (
                     <Panel>
-                      <Collapsible title={`Key Concepts (${notes.key_points.length})`} defaultOpen>
+                      <Collapsible title={`Key Takeaways (${notes.key_points.length})`} defaultOpen>
                         <ol style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                           {notes.key_points.map((pt, i) => (
                             <li key={i} style={{ display: 'flex', gap: '0.625rem', alignItems: 'flex-start' }}>
@@ -614,27 +577,6 @@ export default function NotesViewer() {
                     </Panel>
                   )}
 
-                  {/* Polished transcript */}
-                  {notes.polished_transcript && (
-                    <Panel>
-                      <Collapsible title="Polished Transcript" defaultOpen>
-                        <p style={{ fontSize: '0.875rem', lineHeight: 1.85, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', margin: 0 }}>
-                          {notes.polished_transcript}
-                        </p>
-                      </Collapsible>
-                    </Panel>
-                  )}
-
-                  {/* Raw transcript */}
-                  {fullTranscript && (
-                    <Panel>
-                      <Collapsible title="Raw Transcript">
-                        <p style={{ fontSize: '0.875rem', lineHeight: 1.85, color: 'var(--text-muted)', whiteSpace: 'pre-wrap', margin: 0 }}>
-                          {fullTranscript}
-                        </p>
-                      </Collapsible>
-                    </Panel>
-                  )}
                 </div>
               )}
 

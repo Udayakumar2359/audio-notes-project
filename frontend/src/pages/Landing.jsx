@@ -586,19 +586,6 @@ export default function Landing() {
               <button onClick={() => setModal('login')} className="lv2-btn-ghost" style={{ cursor: 'pointer' }}>Sign In</button>
             )}
           </div>
-
-          {/* Social proof */}
-          <div className="lv2-trust">
-            <div className="lv2-avatars">
-              {['U', 'A', 'R', 'K'].map((i, idx) => (
-                <div key={idx} className="lv2-avatar"
-                  style={{ background: ['#6366f1', '#a855f7', '#059669', '#d97706'][idx] }}>
-                  {i}
-                </div>
-              ))}
-            </div>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}><strong style={{ color: 'var(--text-primary)' }}>5,000+ students</strong> using AudioNotes AI</span>
-          </div>
         </div>
 
         {/* Right: App mockup */}
