@@ -379,4 +379,4 @@ FRONTEND_URL=http://localhost:5173
 
 ---
 
-*End of README — JSS SMC MCA Institute, Dharwad*
+*End of README*
